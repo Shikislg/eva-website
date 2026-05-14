@@ -1,0 +1,34 @@
+.about-page {
+  min-height: 100vh;
+  padding-top: 90px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.about-content {
+  max-width: 600px;
+  padding: 4rem 2rem;
+}
+
+.about-content h1 {
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 2.4rem;
+  color: var(--color-text);
+  margin-bottom: 2rem;
+  letter-spacing: 0.02em;
+}
+
+.about-body p {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--color-text-light);
+  margin-bottom: 1.25rem;
+}
+
+.about-body strong {
+  color: var(--color-text);
+  font-weight: 500;
+}
