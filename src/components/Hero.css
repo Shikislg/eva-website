@@ -40,6 +40,7 @@
 .hero-right .hero-half-bg {
   -webkit-mask-image: linear-gradient(to left, black 40%, transparent 100%);
   mask-image: linear-gradient(to left, black 40%, transparent 100%);
+  background-position: center 60%;
 }
 
 /* Dark overlay on each half for readability */
