@@ -13,14 +13,14 @@ export default function Contact() {
           {t('contact_intro')}
         </p>
         <div className="contact-details">
-          <a href="mailto:eva@example.com" className="contact-link">
-            eva@example.com
+          <a href="mailto:whateva.jpg@web.de" className="contact-link">
+            whateva.jpg@web.de
           </a>
           <div className="contact-socials">
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://www.instagram.com/whateva.jpg/" target="_blank" rel="noopener noreferrer">
               {t('contact_instagram')}
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://www.linkedin.com/in/eva-wagner-55819b357/" target="_blank" rel="noopener noreferrer">
               {t('contact_linkedin')}
             </a>
           </div>

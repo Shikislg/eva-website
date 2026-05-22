@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useProjects, CATEGORIES } from '../context/ProjectContext';
 import { useLanguage } from '../context/LanguageContext';
 import './AdminPanel.css';
@@ -13,6 +13,16 @@ export default function AdminPanel() {
   const [passwordError, setPasswordError] = useState('');
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [coverDragOver, setCoverDragOver] = useState(false);
+  const [imagesDragOver, setImagesDragOver] = useState(false);
+  const coverInputRef = useRef(null);
+  const imagesInputRef = useRef(null);
+  const [cropModal, setCropModal] = useState(null);
+  const [crop, setCrop] = useState({ x: 10, y: 10, w: 80, h: 80 });
+  const [cropAspect, setCropAspect] = useState(null);
+  const cropContainerRef = useRef(null);
+  const cropImgRef = useRef(null);
+  const dragRef = useRef(null);
   const [form, setForm] = useState({
     title: '',
     year: new Date().getFullYear().toString(),
@@ -21,6 +31,171 @@ export default function AdminPanel() {
     coverImage: '',
     images: '',
   });
+
+  const readFileAsDataURL = (file) =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+
+  const handleCoverDrop = useCallback(async (e) => {
+    e.preventDefault();
+    setCoverDragOver(false);
+    const file = e.dataTransfer?.files?.[0] || e.target?.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const dataURL = await readFileAsDataURL(file);
+      setForm((prev) => ({ ...prev, coverImage: dataURL }));
+    }
+  }, []);
+
+  const handleImagesDrop = useCallback(async (e) => {
+    e.preventDefault();
+    setImagesDragOver(false);
+    const files = Array.from(e.dataTransfer?.files || e.target?.files || []).filter((f) =>
+      f.type.startsWith('image/')
+    );
+    const dataURLs = await Promise.all(files.map(readFileAsDataURL));
+    setForm((prev) => {
+      const existing = prev.images ? prev.images.split('\n').filter(Boolean) : [];
+      return { ...prev, images: [...existing, ...dataURLs].join('\n') };
+    });
+  }, []);
+
+  const preventDefaults = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
+
+  const openCrop = (src, type, index) => {
+    setCropModal({ src, type, index });
+    setCrop({ x: 5, y: 5, w: 90, h: 90 });
+    setCropAspect(null);
+  };
+
+  const applyCrop = () => {
+    if (!cropModal) return;
+    const img = new Image();
+    img.onload = () => {
+      const nw = img.naturalWidth;
+      const nh = img.naturalHeight;
+      const sx = (crop.x / 100) * nw;
+      const sy = (crop.y / 100) * nh;
+      const sw = (crop.w / 100) * nw;
+      const sh = (crop.h / 100) * nh;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(sw);
+      canvas.height = Math.round(sh);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+      const cropped = canvas.toDataURL('image/jpeg', 0.92);
+      if (cropModal.type === 'cover') {
+        setForm((prev) => ({ ...prev, coverImage: cropped }));
+      } else {
+        setForm((prev) => {
+          const imgs = prev.images.split('\n').filter(Boolean);
+          imgs[cropModal.index] = cropped;
+          return { ...prev, images: imgs.join('\n') };
+        });
+      }
+      setCropModal(null);
+    };
+    img.src = cropModal.src;
+  };
+
+  const changeCropAspect = (ratio) => {
+    setCropAspect(ratio);
+    if (ratio && cropImgRef.current) {
+      const { naturalWidth, naturalHeight } = cropImgRef.current;
+      setCrop((prev) => {
+        let newW = prev.w;
+        let newH = (newW * naturalWidth) / (ratio * naturalHeight);
+        if (prev.y + newH > 100) {
+          newH = 100 - prev.y;
+          newW = (newH * ratio * naturalHeight) / naturalWidth;
+        }
+        if (prev.x + newW > 100) {
+          newW = 100 - prev.x;
+          newH = (newW * naturalWidth) / (ratio * naturalHeight);
+        }
+        return { ...prev, w: Math.max(10, newW), h: Math.max(10, newH) };
+      });
+    }
+  };
+
+  const handleCropMouseDown = (e, handleType) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const container = cropContainerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    dragRef.current = {
+      type: handleType,
+      startX: e.clientX,
+      startY: e.clientY,
+      startCrop: { ...crop },
+      containerW: rect.width,
+      containerH: rect.height,
+    };
+
+    const onMove = (ev) => {
+      if (!dragRef.current) return;
+      const { type, startX, startY, startCrop, containerW, containerH } = dragRef.current;
+      const dx = ((ev.clientX - startX) / containerW) * 100;
+      const dy = ((ev.clientY - startY) / containerH) * 100;
+      let next = { ...startCrop };
+      const img = cropImgRef.current;
+      const nw = img?.naturalWidth || 1;
+      const nh = img?.naturalHeight || 1;
+
+      if (type === 'move') {
+        next.x = clamp(startCrop.x + dx, 0, 100 - startCrop.w);
+        next.y = clamp(startCrop.y + dy, 0, 100 - startCrop.h);
+      } else {
+        const isTop = type.includes('n');
+        const isLeft = type.includes('w');
+
+        if (isLeft) {
+          const newX = clamp(startCrop.x + dx, 0, startCrop.x + startCrop.w - 10);
+          next.w = startCrop.x + startCrop.w - newX;
+          next.x = newX;
+        } else {
+          next.w = clamp(startCrop.w + dx, 10, 100 - startCrop.x);
+        }
+
+        if (isTop) {
+          const newY = clamp(startCrop.y + dy, 0, startCrop.y + startCrop.h - 10);
+          next.h = startCrop.y + startCrop.h - newY;
+          next.y = newY;
+        } else {
+          next.h = clamp(startCrop.h + dy, 10, 100 - startCrop.y);
+        }
+
+        if (cropAspect) {
+          const targetH = (next.w * nw) / (cropAspect * nh);
+          if (isTop) {
+            const bottom = next.y + next.h;
+            next.h = clamp(targetH, 10, bottom);
+            next.y = bottom - next.h;
+          } else {
+            next.h = clamp(targetH, 10, 100 - next.y);
+          }
+        }
+      }
+      setCrop(next);
+    };
+
+    const onUp = () => {
+      dragRef.current = null;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -174,30 +349,101 @@ export default function AdminPanel() {
                 rows={3}
               />
             </label>
-            <label>
-              {t('admin_label_cover')}
+            <label>{t('admin_label_cover')}</label>
+            <div
+              className={`admin-dropzone${coverDragOver ? ' dragover' : ''}`}
+              onDragOver={(e) => { preventDefaults(e); setCoverDragOver(true); }}
+              onDragEnter={(e) => { preventDefaults(e); setCoverDragOver(true); }}
+              onDragLeave={() => setCoverDragOver(false)}
+              onDrop={handleCoverDrop}
+              onClick={() => coverInputRef.current?.click()}
+            >
               <input
-                type="url"
-                value={form.coverImage}
-                onChange={(e) => setForm({ ...form, coverImage: e.target.value })}
-                required
-                placeholder="https://..."
+                ref={coverInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleCoverDrop}
+                hidden
               />
-            </label>
-            {form.coverImage && (
-              <div className="admin-preview">
-                <img src={form.coverImage} alt="Cover preview" />
+              {form.coverImage ? (
+                <div className="admin-dropzone-preview">
+                  <img src={form.coverImage} alt="Cover preview" onClick={(e) => { e.stopPropagation(); openCrop(form.coverImage, 'cover', 0); }} />
+                  <span className="admin-dropzone-change">Click image to crop · Drop to replace</span>
+                </div>
+              ) : (
+                <div className="admin-dropzone-placeholder">
+                  <span className="admin-dropzone-icon">⇧</span>
+                  <span>Drop image here or click to browse</span>
+                </div>
+              )}
+            </div>
+            <div className="admin-dropzone-or">or paste a URL</div>
+            <input
+              type="url"
+              value={form.coverImage.startsWith('data:') ? '' : form.coverImage}
+              onChange={(e) => setForm({ ...form, coverImage: e.target.value })}
+              placeholder="https://..."
+            />
+            <label>{t('admin_label_images')}</label>
+            <div
+              className={`admin-dropzone admin-dropzone-multi${imagesDragOver ? ' dragover' : ''}`}
+              onDragOver={(e) => { preventDefaults(e); setImagesDragOver(true); }}
+              onDragEnter={(e) => { preventDefaults(e); setImagesDragOver(true); }}
+              onDragLeave={() => setImagesDragOver(false)}
+              onDrop={handleImagesDrop}
+              onClick={() => imagesInputRef.current?.click()}
+            >
+              <input
+                ref={imagesInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImagesDrop}
+                hidden
+              />
+              <div className="admin-dropzone-placeholder">
+                <span className="admin-dropzone-icon">⇧</span>
+                <span>Drop images here or click to browse</span>
+              </div>
+            </div>
+            {form.images && (
+              <div className="admin-dropped-previews">
+                {form.images.split('\n').filter(Boolean).map((src, i) => (
+                  <div key={i} className="admin-dropped-thumb">
+                    <img
+                      src={src}
+                      alt={`Upload ${i + 1}`}
+                      onClick={(e) => { e.stopPropagation(); openCrop(src, 'gallery', i); }}
+                      title="Click to crop"
+                    />
+                    <button
+                      type="button"
+                      className="admin-dropped-remove"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setForm((prev) => ({
+                          ...prev,
+                          images: prev.images.split('\n').filter((_, j) => j !== i).join('\n'),
+                        }));
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
-            <label>
-              {t('admin_label_images')}
-              <textarea
-                value={form.images}
-                onChange={(e) => setForm({ ...form, images: e.target.value })}
-                placeholder={"https://image1.jpg\nhttps://image2.jpg\nhttps://image3.jpg"}
-                rows={5}
-              />
-            </label>
+            <div className="admin-dropzone-or">or paste URLs (one per line)</div>
+            <textarea
+              value={form.images.split('\n').filter((u) => !u.startsWith('data:')).join('\n')}
+              onChange={(e) => {
+                const dataUrls = form.images.split('\n').filter((u) => u.startsWith('data:'));
+                const pasted = e.target.value;
+                setForm({ ...form, images: [...dataUrls, ...pasted.split('\n')].filter(Boolean).join('\n') });
+              }}
+              placeholder={"https://image1.jpg\nhttps://image2.jpg"}
+              rows={3}
+            />
             <div className="admin-form-actions">
               <button type="submit" className="btn-primary">
                 {editing ? t('admin_save') : t('admin_add')}
@@ -238,6 +484,64 @@ export default function AdminPanel() {
           ))}
         </div>
       </div>
+
+      {cropModal && (
+        <div className="crop-overlay" onClick={() => setCropModal(null)}>
+          <div className="crop-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="crop-toolbar">
+              <div className="crop-aspects">
+                {[
+                  { label: 'Free', value: null },
+                  { label: '16:9', value: 16 / 9 },
+                  { label: '4:3', value: 4 / 3 },
+                  { label: '3:2', value: 3 / 2 },
+                  { label: '1:1', value: 1 },
+                ].map((a) => (
+                  <button
+                    key={a.label}
+                    type="button"
+                    className={`crop-aspect-btn${cropAspect === a.value ? ' active' : ''}`}
+                    onClick={() => changeCropAspect(a.value)}
+                  >
+                    {a.label}
+                  </button>
+                ))}
+              </div>
+              <div className="crop-actions">
+                <button type="button" className="btn-primary" onClick={applyCrop}>
+                  Apply
+                </button>
+                <button type="button" className="btn-secondary" onClick={() => setCropModal(null)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+            <div className="crop-area" ref={cropContainerRef}>
+              <img
+                ref={cropImgRef}
+                src={cropModal.src}
+                alt="Crop"
+                className="crop-image"
+                draggable={false}
+              />
+              <div className="crop-darken" style={{ top: 0, left: 0, right: 0, height: `${crop.y}%` }} />
+              <div className="crop-darken" style={{ top: `${crop.y + crop.h}%`, left: 0, right: 0, bottom: 0 }} />
+              <div className="crop-darken" style={{ top: `${crop.y}%`, left: 0, width: `${crop.x}%`, height: `${crop.h}%` }} />
+              <div className="crop-darken" style={{ top: `${crop.y}%`, right: 0, left: `${crop.x + crop.w}%`, height: `${crop.h}%` }} />
+              <div
+                className="crop-selection"
+                style={{ top: `${crop.y}%`, left: `${crop.x}%`, width: `${crop.w}%`, height: `${crop.h}%` }}
+                onMouseDown={(e) => handleCropMouseDown(e, 'move')}
+              >
+                <div className="crop-handle nw" onMouseDown={(e) => handleCropMouseDown(e, 'nw')} />
+                <div className="crop-handle ne" onMouseDown={(e) => handleCropMouseDown(e, 'ne')} />
+                <div className="crop-handle sw" onMouseDown={(e) => handleCropMouseDown(e, 'sw')} />
+                <div className="crop-handle se" onMouseDown={(e) => handleCropMouseDown(e, 'se')} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

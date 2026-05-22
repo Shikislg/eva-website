@@ -1,11 +1,13 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 const ProjectContext = createContext();
 
-const STORAGE_KEY = 'eva_portfolio_projects';
-const STORAGE_VERSION_KEY = 'eva_portfolio_version';
-const CURRENT_VERSION = '2';
+const DB_NAME = 'eva_portfolio_db';
+const DB_VERSION = 1;
+const DB_STORE = 'data';
+const LEGACY_STORAGE_KEY = 'eva_portfolio_projects';
+const LEGACY_VERSION_KEY = 'eva_portfolio_version';
 
 export const CATEGORIES = [
   { key: 'sports', label: 'Sports' },
@@ -97,29 +99,77 @@ const defaultProjects = [
   },
 ];
 
-function loadProjects() {
-  try {
-    const version = localStorage.getItem(STORAGE_VERSION_KEY);
-    if (version !== CURRENT_VERSION) {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.setItem(STORAGE_VERSION_KEY, CURRENT_VERSION);
-      return defaultProjects;
-    }
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch {
-    // Fall through to defaults
-  }
-  return defaultProjects;
+// IndexedDB helpers
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(DB_STORE)) {
+        db.createObjectStore(DB_STORE);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbGet(key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, 'readonly');
+    const req = tx.objectStore(DB_STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbSet(key, value) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, 'readwrite');
+    tx.objectStore(DB_STORE).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
 }
 
 export function ProjectProvider({ children }) {
-  const [projects, setProjects] = useState(loadProjects);
+  const [projects, setProjects] = useState(defaultProjects);
+  const loaded = useRef(false);
 
+  // Load from IndexedDB on mount, migrate from localStorage if needed
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+    (async () => {
+      try {
+        // Migrate from localStorage if data exists there
+        const lsData = localStorage.getItem(LEGACY_STORAGE_KEY);
+        if (lsData) {
+          try {
+            const parsed = JSON.parse(lsData);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              await idbSet('projects', parsed);
+              setProjects(parsed);
+            }
+          } catch {}
+          localStorage.removeItem(LEGACY_STORAGE_KEY);
+          localStorage.removeItem(LEGACY_VERSION_KEY);
+        } else {
+          const stored = await idbGet('projects');
+          if (Array.isArray(stored) && stored.length > 0) {
+            setProjects(stored);
+          }
+        }
+      } catch {}
+      loaded.current = true;
+    })();
+  }, []);
+
+  // Save to IndexedDB whenever projects change
+  useEffect(() => {
+    if (loaded.current) {
+      idbSet('projects', projects).catch(() => {});
+    }
   }, [projects]);
 
   const addProject = (project) => {
