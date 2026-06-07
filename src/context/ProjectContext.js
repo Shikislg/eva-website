@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { dataURLToBase64, stringToBase64 } from '../utils/imageUtils';
 
 const ProjectContext = createContext();
 
@@ -134,17 +135,65 @@ async function idbSet(key, value) {
   });
 }
 
+// ── GitHub API helpers ────────────────────────────────────────────────────────
+
+async function githubGetFileSHA(token, owner, repo, branch, path) {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${branch}`,
+      { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' } }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      return data.sha || null;
+    }
+  } catch {}
+  return null;
+}
+
+async function githubCommitFile(token, owner, repo, branch, path, base64Content, message) {
+  const sha = await githubGetFileSHA(token, owner, repo, branch, path);
+  const body = { message, content: base64Content, branch };
+  if (sha) body.sha = sha;
+
+  const res = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/vnd.github+json',
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    let msg = `GitHub API error ${res.status}`;
+    try { msg = JSON.parse(text).message || msg; } catch {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export function ProjectProvider({ children }) {
   const [projects, setProjects] = useState(defaultProjects);
   const loaded = useRef(false);
+  // Used by publishToGitHub so the save-effect stores the exact publish timestamp.
+  const pendingLastModified = useRef(null);
 
-  // Load from IndexedDB on mount, migrate from localStorage if needed
+  // Load from IndexedDB on mount, migrate from localStorage if needed,
+  // then check /gallery-data.json for a newer published version.
   useEffect(() => {
     (async () => {
       try {
-        // Migrate from localStorage if data exists there
         const lsData = localStorage.getItem(LEGACY_STORAGE_KEY);
         if (lsData) {
+          // Migrate from localStorage
           try {
             const parsed = JSON.parse(lsData);
             if (Array.isArray(parsed) && parsed.length > 0) {
@@ -156,19 +205,41 @@ export function ProjectProvider({ children }) {
           localStorage.removeItem(LEGACY_VERSION_KEY);
         } else {
           const stored = await idbGet('projects');
-          if (Array.isArray(stored) && stored.length > 0) {
+          const localModified = (await idbGet('lastModified')) || 0;
+
+          // Try to load a remotely published gallery-data.json
+          let remoteData = null;
+          try {
+            const res = await fetch('/gallery-data.json', { cache: 'no-cache' });
+            if (res.ok) {
+              const json = await res.json();
+              if (json?.projects?.length && json.lastPublished) remoteData = json;
+            }
+          } catch {}
+
+          if (remoteData && remoteData.lastPublished > localModified) {
+            // Remote version is newer – use it and cache locally
+            setProjects(remoteData.projects);
+            await idbSet('projects', remoteData.projects);
+            await idbSet('lastModified', remoteData.lastPublished);
+          } else if (Array.isArray(stored) && stored.length > 0) {
             setProjects(stored);
           }
+          // else: keep defaultProjects
         }
       } catch {}
       loaded.current = true;
     })();
   }, []);
 
-  // Save to IndexedDB whenever projects change
+  // Persist to IndexedDB whenever projects change (after initial load).
+  // Honours the timestamp set by publishToGitHub so comparisons stay consistent.
   useEffect(() => {
     if (loaded.current) {
+      const ts = pendingLastModified.current ?? Date.now();
+      pendingLastModified.current = null;
       idbSet('projects', projects).catch(() => {});
+      idbSet('lastModified', ts).catch(() => {});
     }
   }, [projects]);
 
@@ -198,6 +269,92 @@ export function ProjectProvider({ children }) {
 
   const getProject = (id) => projects.find((p) => p.id === id);
 
+  /**
+   * Publish all projects to GitHub.
+   *
+   * For every image stored as a data URL (data:…) the function:
+   *   1. Commits the JPEG to `{pathPrefix}/img/gallery/{projectId}/cover.jpg` (or `{index}.jpg`)
+   *   2. Replaces the data URL in state with the relative path `/img/gallery/…`
+   *
+   * Then commits `{pathPrefix}/gallery-data.json` with the updated project list
+   * and a `lastPublished` timestamp so other devices stay in sync.
+   *
+   * @param {{ token: string, owner: string, repo: string,
+   *           branch?: string, pathPrefix?: string }} config
+   * @param {(info: { step: number, total: number, message: string }) => void} [onProgress]
+   */
+  const publishToGitHub = async (
+    { token, owner, repo, branch = 'master', pathPrefix = 'public' },
+    onProgress
+  ) => {
+    // Count how many files need uploading
+    let total = 1; // +1 for gallery-data.json
+    for (const p of projects) {
+      if (p.coverImage?.startsWith('data:')) total++;
+      for (const img of p.images) {
+        if (img?.startsWith('data:')) total++;
+      }
+    }
+
+    let step = 0;
+    const report = (message) => {
+      step++;
+      onProgress?.({ step, total, message });
+    };
+
+    const timestamp = Date.now();
+    const updatedProjects = [];
+
+    for (const project of projects) {
+      let coverImage = project.coverImage;
+
+      if (coverImage?.startsWith('data:')) {
+        const filePath = `${pathPrefix}/img/gallery/${project.id}/cover.jpg`;
+        report(`Uploading cover for "${project.title}"…`);
+        await githubCommitFile(
+          token, owner, repo, branch, filePath,
+          dataURLToBase64(coverImage),
+          `Add cover image for ${project.title}`
+        );
+        coverImage = `/img/gallery/${project.id}/cover.jpg`;
+      }
+
+      const updatedImages = [];
+      for (let i = 0; i < project.images.length; i++) {
+        let imgSrc = project.images[i];
+        if (imgSrc?.startsWith('data:')) {
+          const filePath = `${pathPrefix}/img/gallery/${project.id}/${i}.jpg`;
+          report(`Uploading image ${i + 1}/${project.images.length} for "${project.title}"…`);
+          await githubCommitFile(
+            token, owner, repo, branch, filePath,
+            dataURLToBase64(imgSrc),
+            `Add gallery image for ${project.title}`
+          );
+          imgSrc = `/img/gallery/${project.id}/${i}.jpg`;
+        }
+        updatedImages.push(imgSrc);
+      }
+
+      updatedProjects.push({ ...project, coverImage, images: updatedImages });
+    }
+
+    // Commit gallery-data.json
+    const galleryData = { lastPublished: timestamp, projects: updatedProjects };
+    const jsonPath = `${pathPrefix}/gallery-data.json`;
+    report('Updating gallery-data.json…');
+    await githubCommitFile(
+      token, owner, repo, branch, jsonPath,
+      stringToBase64(JSON.stringify(galleryData, null, 2)),
+      'Update gallery data'
+    );
+
+    // Update local state — use the publish timestamp so comparisons stay stable
+    pendingLastModified.current = timestamp;
+    setProjects(updatedProjects);
+    // Ensure lastModified is saved with the exact publish timestamp
+    await idbSet('lastModified', timestamp);
+  };
+
   const sortedProjects = [...projects].sort((a, b) => a.order - b.order);
 
   return (
@@ -209,6 +366,7 @@ export function ProjectProvider({ children }) {
         deleteProject,
         reorderProjects,
         getProject,
+        publishToGitHub,
       }}
     >
       {children}

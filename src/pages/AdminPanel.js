@@ -1,12 +1,13 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useProjects, CATEGORIES } from '../context/ProjectContext';
 import { useLanguage } from '../context/LanguageContext';
+import { compressImageToDataURL } from '../utils/imageUtils';
 import './AdminPanel.css';
 
 const ADMIN_PASSWORD = 'eva2026';
 
 export default function AdminPanel() {
-  const { projects, addProject, updateProject, deleteProject } = useProjects();
+  const { projects, addProject, updateProject, deleteProject, publishToGitHub } = useProjects();
   const { t } = useLanguage();
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
@@ -23,6 +24,27 @@ export default function AdminPanel() {
   const cropContainerRef = useRef(null);
   const cropImgRef = useRef(null);
   const dragRef = useRef(null);
+
+  // GitHub publish settings (persisted in sessionStorage, cleared on tab close)
+  const [ghSettings, setGhSettings] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem('gh_settings') || 'null') || {
+        token: '', owner: '', repo: '', branch: 'master', pathPrefix: 'public',
+      };
+    } catch {
+      return { token: '', owner: '', repo: '', branch: 'master', pathPrefix: 'public' };
+    }
+  });
+  const [showGhSettings, setShowGhSettings] = useState(false);
+  const [publishProgress, setPublishProgress] = useState(null); // { step, total, message }
+  const [publishError, setPublishError] = useState('');
+  const [publishSuccess, setPublishSuccess] = useState(false);
+
+  // Persist GitHub settings to sessionStorage whenever they change
+  useEffect(() => {
+    sessionStorage.setItem('gh_settings', JSON.stringify(ghSettings));
+  }, [ghSettings]);
+
   const [form, setForm] = useState({
     title: '',
     year: new Date().getFullYear().toString(),
@@ -32,22 +54,28 @@ export default function AdminPanel() {
     images: '',
   });
 
-  const readFileAsDataURL = (file) =>
-    new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.readAsDataURL(file);
-    });
+  // Compress a cover image (800 px wide max, 88 % quality) – keeps files small
+  // while preserving enough detail for a portfolio hero image.
+  const readCoverFile = useCallback(
+    (file) => compressImageToDataURL(file, 1200, 1200, 0.88),
+    []
+  );
+
+  // Compress gallery images (1920 px wide max, 82 % quality).
+  const readGalleryFile = useCallback(
+    (file) => compressImageToDataURL(file, 1920, 1920, 0.82),
+    []
+  );
 
   const handleCoverDrop = useCallback(async (e) => {
     e.preventDefault();
     setCoverDragOver(false);
     const file = e.dataTransfer?.files?.[0] || e.target?.files?.[0];
     if (file && file.type.startsWith('image/')) {
-      const dataURL = await readFileAsDataURL(file);
+      const dataURL = await readCoverFile(file);
       setForm((prev) => ({ ...prev, coverImage: dataURL }));
     }
-  }, []);
+  }, [readCoverFile]);
 
   const handleImagesDrop = useCallback(async (e) => {
     e.preventDefault();
@@ -55,12 +83,18 @@ export default function AdminPanel() {
     const files = Array.from(e.dataTransfer?.files || e.target?.files || []).filter((f) =>
       f.type.startsWith('image/')
     );
-    const dataURLs = await Promise.all(files.map(readFileAsDataURL));
+    // Process in batches of 5 to avoid locking up the UI with large drops
+    const dataURLs = [];
+    for (let i = 0; i < files.length; i += 5) {
+      const batch = files.slice(i, i + 5);
+      const results = await Promise.all(batch.map(readGalleryFile));
+      dataURLs.push(...results);
+    }
     setForm((prev) => {
       const existing = prev.images ? prev.images.split('\n').filter(Boolean) : [];
       return { ...prev, images: [...existing, ...dataURLs].join('\n') };
     });
-  }, []);
+  }, [readGalleryFile]);
 
   const preventDefaults = (e) => {
     e.preventDefault();
@@ -263,6 +297,26 @@ export default function AdminPanel() {
     }
   };
 
+  const handlePublish = async () => {
+    const { token, owner, repo } = ghSettings;
+    if (!token || !owner || !repo) {
+      setShowGhSettings(true);
+      setPublishError('Please fill in all GitHub settings before publishing.');
+      return;
+    }
+    setPublishError('');
+    setPublishSuccess(false);
+    setPublishProgress({ step: 0, total: 1, message: 'Connecting to GitHub…' });
+    try {
+      await publishToGitHub(ghSettings, (p) => setPublishProgress(p));
+      setPublishSuccess(true);
+    } catch (err) {
+      setPublishError(err.message || 'Publish failed. Check your GitHub settings.');
+    } finally {
+      setPublishProgress(null);
+    }
+  };
+
   if (!authenticated) {
     return (
       <div className="admin-page">
@@ -292,16 +346,118 @@ export default function AdminPanel() {
       <div className="admin-container">
         <div className="admin-header">
           <h2>{t('admin_manage')}</h2>
-          <button
-            className="btn-primary"
-            onClick={() => {
-              resetForm();
-              setShowForm(true);
-            }}
-          >
-            {t('admin_new')}
-          </button>
+          <div className="admin-header-actions">
+            <button
+              className="btn-secondary btn-github"
+              onClick={() => {
+                setShowGhSettings((v) => !v);
+                setPublishError('');
+                setPublishSuccess(false);
+              }}
+              title="GitHub publish settings"
+            >
+              ⬆ GitHub
+            </button>
+            <button
+              className="btn-primary"
+              onClick={() => {
+                resetForm();
+                setShowForm(true);
+              }}
+            >
+              {t('admin_new')}
+            </button>
+          </div>
         </div>
+
+        {/* GitHub Settings & Publish */}
+        {showGhSettings && (
+          <div className="gh-settings-panel">
+            <h4 className="gh-settings-title">Publish to GitHub</h4>
+            <p className="gh-settings-desc">
+              Images are committed to <code>{ghSettings.pathPrefix}/img/gallery/</code> and
+              project data to <code>{ghSettings.pathPrefix}/gallery-data.json</code> in your repo.
+              After pushing, any device that visits the site will load the latest gallery automatically.
+            </p>
+            <div className="gh-settings-grid">
+              <label>
+                Personal Access Token
+                <input
+                  type="password"
+                  value={ghSettings.token}
+                  onChange={(e) => setGhSettings((s) => ({ ...s, token: e.target.value }))}
+                  placeholder="ghp_xxxxxxxxxxxx"
+                  autoComplete="off"
+                />
+              </label>
+              <label>
+                Owner (GitHub username / org)
+                <input
+                  type="text"
+                  value={ghSettings.owner}
+                  onChange={(e) => setGhSettings((s) => ({ ...s, owner: e.target.value }))}
+                  placeholder="Shikislg"
+                />
+              </label>
+              <label>
+                Repository name
+                <input
+                  type="text"
+                  value={ghSettings.repo}
+                  onChange={(e) => setGhSettings((s) => ({ ...s, repo: e.target.value }))}
+                  placeholder="eva-website"
+                />
+              </label>
+              <label>
+                Branch
+                <input
+                  type="text"
+                  value={ghSettings.branch}
+                  onChange={(e) => setGhSettings((s) => ({ ...s, branch: e.target.value }))}
+                  placeholder="master"
+                />
+              </label>
+              <label>
+                Path prefix in repo
+                <input
+                  type="text"
+                  value={ghSettings.pathPrefix}
+                  onChange={(e) => setGhSettings((s) => ({ ...s, pathPrefix: e.target.value }))}
+                  placeholder="public"
+                />
+              </label>
+            </div>
+
+            {publishProgress && (
+              <div className="gh-progress">
+                <div
+                  className="gh-progress-bar"
+                  style={{ width: `${Math.round((publishProgress.step / publishProgress.total) * 100)}%` }}
+                />
+                <span className="gh-progress-label">{publishProgress.message}</span>
+              </div>
+            )}
+            {publishError && <p className="gh-error">{publishError}</p>}
+            {publishSuccess && (
+              <p className="gh-success">
+                ✓ Published! Run <code>npm run build</code> &amp; deploy to make changes live.
+              </p>
+            )}
+
+            <div className="gh-settings-actions">
+              <button
+                className="btn-primary"
+                onClick={handlePublish}
+                disabled={!!publishProgress}
+              >
+                {publishProgress ? 'Publishing…' : 'Publish to GitHub'}
+              </button>
+              <button className="btn-secondary" onClick={() => setShowGhSettings(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        )}
 
         {showForm && (
           <form className="admin-form" onSubmit={handleSubmit}>

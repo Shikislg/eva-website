@@ -1,8 +1,42 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { useProjects } from '../context/ProjectContext';
 import { useLanguage } from '../context/LanguageContext';
 import './ProjectDetail.css';
+
+/**
+ * Lazy-loads the src only once the element is near the viewport.
+ * For regular https:// URLs the native loading="lazy" attribute is enough.
+ * For data: URLs (locally uploaded, not yet published) the browser ignores
+ * loading="lazy", so we gate on IntersectionObserver instead.
+ */
+function LazyImage({ src, alt, onClick }) {
+  const ref = useRef(null);
+  const isDataUrl = src?.startsWith('data:');
+  const [ready, setReady] = useState(!isDataUrl);
+
+  useEffect(() => {
+    if (!isDataUrl) { setReady(true); return; }
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setReady(true); observer.disconnect(); } },
+      { rootMargin: '300px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isDataUrl]);
+
+  return (
+    <img
+      ref={ref}
+      src={ready ? src : undefined}
+      alt={alt}
+      loading={isDataUrl ? undefined : 'lazy'}
+      onClick={onClick}
+    />
+  );
+}
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -66,10 +100,9 @@ export default function ProjectDetail() {
             className="project-detail-image-wrapper"
             onClick={() => openLightbox(index)}
           >
-            <img
+            <LazyImage
               src={img}
               alt={`${project.title} - ${index + 1}`}
-              loading="lazy"
             />
           </div>
         ))}
