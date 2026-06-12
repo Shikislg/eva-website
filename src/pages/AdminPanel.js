@@ -5,6 +5,13 @@ import { compressImageToDataURL } from '../utils/imageUtils';
 import './AdminPanel.css';
 
 const ADMIN_PASSWORD = 'eva2026';
+const DEFAULT_GH_SETTINGS = {
+  owner: '',
+  repo: '',
+  apiSecret: '',
+  branch: 'master',
+  pathPrefix: 'public',
+};
 
 export default function AdminPanel() {
   const { projects, addProject, updateProject, deleteProject, publishToGitHub } = useProjects();
@@ -28,11 +35,11 @@ export default function AdminPanel() {
   // GitHub publish settings (persisted in sessionStorage, cleared on tab close)
   const [ghSettings, setGhSettings] = useState(() => {
     try {
-      return JSON.parse(sessionStorage.getItem('gh_settings') || 'null') || {
-        token: '', owner: '', repo: '', branch: 'master', pathPrefix: 'public',
-      };
+      const stored = JSON.parse(sessionStorage.getItem('gh_settings') || 'null');
+      if (!stored) return DEFAULT_GH_SETTINGS;
+      return { ...DEFAULT_GH_SETTINGS, ...stored };
     } catch {
-      return { token: '', owner: '', repo: '', branch: 'master', pathPrefix: 'public' };
+      return DEFAULT_GH_SETTINGS;
     }
   });
   const [showGhSettings, setShowGhSettings] = useState(false);
@@ -298,10 +305,10 @@ export default function AdminPanel() {
   };
 
   const handlePublish = async () => {
-    const { token, owner, repo } = ghSettings;
-    if (!token || !owner || !repo) {
+    const { owner, repo, apiSecret } = ghSettings;
+    if (!owner || !repo || !apiSecret) {
       setShowGhSettings(true);
-      setPublishError('Please fill in all GitHub settings before publishing.');
+      setPublishError('Please fill in owner, repository and publish API secret before publishing.');
       return;
     }
     setPublishError('');
@@ -377,16 +384,17 @@ export default function AdminPanel() {
             <p className="gh-settings-desc">
               Images are committed to <code>{ghSettings.pathPrefix}/img/gallery/</code> and
               project data to <code>{ghSettings.pathPrefix}/gallery-data.json</code> in your repo.
+              The GitHub token and publish secret are read on the backend from server env variables.
               After pushing, any device that visits the site will load the latest gallery automatically.
             </p>
             <div className="gh-settings-grid">
               <label>
-                Personal Access Token
+                Publish API Secret
                 <input
                   type="password"
-                  value={ghSettings.token}
-                  onChange={(e) => setGhSettings((s) => ({ ...s, token: e.target.value }))}
-                  placeholder="ghp_xxxxxxxxxxxx"
+                  value={ghSettings.apiSecret}
+                  onChange={(e) => setGhSettings((s) => ({ ...s, apiSecret: e.target.value }))}
+                  placeholder="set the same value as PUBLISH_API_SECRET"
                   autoComplete="off"
                 />
               </label>

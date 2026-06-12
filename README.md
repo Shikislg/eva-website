@@ -2,6 +2,39 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Backend Publish Endpoint
+
+This app now publishes gallery content through a local backend endpoint instead of calling GitHub directly from the browser.
+
+### Environment variables
+
+Create a root `.env` file with one of these variables:
+
+```env
+GITHUB_PAT=your_fine_grained_token
+# or
+PERSONAL_ACCESS_TOKEN=your_fine_grained_token
+# or
+Personal_Access_Token=your_fine_grained_token
+
+# Required request auth for publish endpoint
+PUBLISH_API_SECRET=choose_a_long_random_secret
+```
+
+In the Admin panel, enter the same `PUBLISH_API_SECRET` value in the "Publish API Secret" field.
+
+### Run in development
+
+```bash
+npm start
+```
+
+`npm start` now runs both:
+- React client on `http://localhost:3000`
+- Publish API on `http://localhost:4000`
+
+The client calls `/api/publish-gallery` and the server performs GitHub commits with the server-side token.
+
 ## Available Scripts
 
 In the project directory, you can run:
