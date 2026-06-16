@@ -22,7 +22,7 @@ export default function Hero() {
         <h1 className="hero-greeting">
           {t('hero_greeting_before')}<span className="hero-name">{t('hero_name')}</span>{t('hero_greeting_after')}
         </h1>
-        <p className="hero-subtitle">{t('hero_subtitle')}</p>
+        <p className="hero-subtitle">{t('hero_subtitle_before')}<span className="hero-subtitle-highlight">{t('hero_subtitle_highlight')}</span></p>
       </div>
     </section>
   );
