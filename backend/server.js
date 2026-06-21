@@ -1,7 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const path = require('path');
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -45,6 +46,65 @@ async function githubGetFileSHA(authToken, owner, repo, branch, path) {
   }
 
   return null;
+}
+
+async function githubGetFileContent(authToken, owner, repo, branch, path) {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          Accept: 'application/vnd.github+json',
+        },
+      }
+    );
+
+    if (res.ok) {
+      const data = await res.json();
+      if (typeof data.content === 'string') {
+        return Buffer.from(data.content, 'base64').toString('utf8');
+      }
+    }
+  } catch {
+    // Return null when the file can't be read (e.g. first publish).
+  }
+
+  return null;
+}
+
+async function githubDeleteFile(authToken, owner, repo, branch, path, message) {
+  const sha = await githubGetFileSHA(authToken, owner, repo, branch, path);
+  if (!sha) return; // Already gone.
+
+  await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`,
+    {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/vnd.github+json',
+      },
+      body: JSON.stringify({ message, sha, branch }),
+    }
+  );
+}
+
+function collectManagedImagePaths(projects, pathPrefix) {
+  const paths = new Set();
+  const prefix = '/img/gallery/';
+
+  for (const project of projects || []) {
+    const candidates = [project.coverImage, ...(Array.isArray(project.images) ? project.images : [])];
+    for (const src of candidates) {
+      if (typeof src === 'string' && src.startsWith(prefix)) {
+        paths.add(`${pathPrefix}${src}`);
+      }
+    }
+  }
+
+  return paths;
 }
 
 async function githubCommitFile(authToken, owner, repo, branch, path, base64Content, message) {
@@ -114,6 +174,19 @@ app.post('/api/publish-gallery', async (req, res) => {
   }
 
   try {
+    const galleryDataPath = `${pathPrefix}/gallery-data.json`;
+    const previousRaw = await githubGetFileContent(token, owner, repo, branch, galleryDataPath);
+    let previousProjects = [];
+    if (previousRaw) {
+      try {
+        const parsed = JSON.parse(previousRaw);
+        if (Array.isArray(parsed.projects)) previousProjects = parsed.projects;
+      } catch {
+        // Treat unparsable previous data as if nothing was published yet.
+      }
+    }
+    const previousImagePaths = collectManagedImagePaths(previousProjects, pathPrefix);
+
     const timestamp = Date.now();
     const updatedProjects = [];
 
@@ -158,12 +231,17 @@ app.post('/api/publish-gallery', async (req, res) => {
       updatedProjects.push({ ...project, coverImage, images: updatedImages });
     }
 
+    const newImagePaths = collectManagedImagePaths(updatedProjects, pathPrefix);
+    const orphanedPaths = [...previousImagePaths].filter((p) => !newImagePaths.has(p));
+    for (const orphanPath of orphanedPaths) {
+      await githubDeleteFile(token, owner, repo, branch, orphanPath, `Remove unused gallery image ${orphanPath}`);
+    }
+
     const galleryData = {
       lastPublished: timestamp,
       projects: updatedProjects,
     };
 
-    const galleryDataPath = `${pathPrefix}/gallery-data.json`;
     await githubCommitFile(
       token,
       owner,
