@@ -1,4 +1,15 @@
 {
-  "lastPublished": 0,
-  "projects": []
+  "lastPublished": 1782051793680,
+  "projects": [
+    {
+      "title": "Schalke U23 - Bocholt",
+      "year": "2026",
+      "category": "sports",
+      "description": "",
+      "coverImage": "/img/gallery/a5c0ec5b-b599-41ae-882c-c312f7f4f120/cover.jpg",
+      "images": [],
+      "id": "a5c0ec5b-b599-41ae-882c-c312f7f4f120",
+      "order": 0
+    }
+  ]
 }
