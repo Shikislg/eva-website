@@ -448,7 +448,7 @@ export default function AdminPanel() {
             {publishError && <p className="gh-error">{publishError}</p>}
             {publishSuccess && (
               <p className="gh-success">
-                ✓ Published! Run <code>npm run build</code> &amp; deploy to make changes live.
+                ✓ Published! Your site will rebuild automatically — changes are usually live within a few minutes.
               </p>
             )}
 
