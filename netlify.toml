@@ -1,0 +1,20 @@
+[build]
+  command = "npm run build"
+  publish = "build"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Route the publish API to the serverless function.
+[[redirects]]
+  from = "/api/publish-gallery"
+  to = "/.netlify/functions/publish-gallery"
+  status = 200
+  force = true
+
+# SPA fallback — send all unmatched routes to index.html for React Router.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
