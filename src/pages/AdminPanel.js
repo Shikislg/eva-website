@@ -6,11 +6,11 @@ import './AdminPanel.css';
 
 const ADMIN_PASSWORD = 'eva2026';
 const DEFAULT_GH_SETTINGS = {
-  owner: '',
-  repo: '',
-  apiSecret: '',
+  owner: 'Shikislg',
+  repo: 'eva-website',
   branch: 'master',
   pathPrefix: 'public',
+  apiSecret: '',
 };
 
 export default function AdminPanel() {
@@ -305,10 +305,10 @@ export default function AdminPanel() {
   };
 
   const handlePublish = async () => {
-    const { owner, repo, apiSecret } = ghSettings;
-    if (!owner || !repo || !apiSecret) {
+    const { apiSecret } = ghSettings;
+    if (!apiSecret) {
       setShowGhSettings(true);
-      setPublishError('Please fill in owner, repository and publish API secret before publishing.');
+      setPublishError('Enter the publish secret before publishing.');
       return;
     }
     setPublishError('');
@@ -377,64 +377,21 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        {/* GitHub Settings & Publish */}
+        {/* GitHub publish panel */}
         {showGhSettings && (
           <div className="gh-settings-panel">
             <h4 className="gh-settings-title">Publish to GitHub</h4>
-            <p className="gh-settings-desc">
-              Images are committed to <code>{ghSettings.pathPrefix}/img/gallery/</code> and
-              project data to <code>{ghSettings.pathPrefix}/gallery-data.json</code> in your repo.
-              The GitHub token and publish secret are read on the backend from server env variables.
-              After pushing, any device that visits the site will load the latest gallery automatically.
-            </p>
-            <div className="gh-settings-grid">
-              <label>
-                Publish API Secret
-                <input
-                  type="password"
-                  value={ghSettings.apiSecret}
-                  onChange={(e) => setGhSettings((s) => ({ ...s, apiSecret: e.target.value }))}
-                  placeholder="set the same value as PUBLISH_API_SECRET"
-                  autoComplete="off"
-                />
-              </label>
-              <label>
-                Owner (GitHub username / org)
-                <input
-                  type="text"
-                  value={ghSettings.owner}
-                  onChange={(e) => setGhSettings((s) => ({ ...s, owner: e.target.value }))}
-                  placeholder="Shikislg"
-                />
-              </label>
-              <label>
-                Repository name
-                <input
-                  type="text"
-                  value={ghSettings.repo}
-                  onChange={(e) => setGhSettings((s) => ({ ...s, repo: e.target.value }))}
-                  placeholder="eva-website"
-                />
-              </label>
-              <label>
-                Branch
-                <input
-                  type="text"
-                  value={ghSettings.branch}
-                  onChange={(e) => setGhSettings((s) => ({ ...s, branch: e.target.value }))}
-                  placeholder="master"
-                />
-              </label>
-              <label>
-                Path prefix in repo
-                <input
-                  type="text"
-                  value={ghSettings.pathPrefix}
-                  onChange={(e) => setGhSettings((s) => ({ ...s, pathPrefix: e.target.value }))}
-                  placeholder="public"
-                />
-              </label>
-            </div>
+            <label className="gh-secret-label">
+              Publish secret
+              <input
+                type="password"
+                value={ghSettings.apiSecret}
+                onChange={(e) => setGhSettings((s) => ({ ...s, apiSecret: e.target.value }))}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                autoFocus
+              />
+            </label>
 
             {publishProgress && (
               <div className="gh-progress">
@@ -448,7 +405,7 @@ export default function AdminPanel() {
             {publishError && <p className="gh-error">{publishError}</p>}
             {publishSuccess && (
               <p className="gh-success">
-                ✓ Published! Your site will rebuild automatically — changes are usually live within a few minutes.
+                ✓ Published! Changes are usually live within a few minutes.
               </p>
             )}
 
@@ -458,10 +415,10 @@ export default function AdminPanel() {
                 onClick={handlePublish}
                 disabled={!!publishProgress}
               >
-                {publishProgress ? 'Publishing…' : 'Publish to GitHub'}
+                {publishProgress ? 'Publishing…' : 'Publish'}
               </button>
               <button className="btn-secondary" onClick={() => setShowGhSettings(false)}>
-                Close
+                Cancel
               </button>
             </div>
           </div>
