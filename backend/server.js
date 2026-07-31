@@ -139,6 +139,17 @@ async function githubCommitFile(authToken, owner, repo, branch, path, base64Cont
   return res.json();
 }
 
+app.post('/api/auth', (req, res) => {
+  const adminPassword = process.env.ADMIN_PASSWORD || '';
+  if (!adminPassword) {
+    return res.status(500).json({ error: 'ADMIN_PASSWORD not set in .env.' });
+  }
+  if (!req.body?.password || req.body.password !== adminPassword) {
+    return res.status(401).json({ error: 'Incorrect password.' });
+  }
+  return res.json({ ok: true });
+});
+
 app.post('/api/publish-gallery', async (req, res) => {
   if (!publishSecret) {
     return res.status(500).json({

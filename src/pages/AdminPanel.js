@@ -4,7 +4,6 @@ import { useLanguage } from '../context/LanguageContext';
 import { compressImageToDataURL } from '../utils/imageUtils';
 import './AdminPanel.css';
 
-const ADMIN_PASSWORD = 'eva2026';
 const DEFAULT_GH_SETTINGS = {
   owner: 'Shikislg',
   repo: 'eva-website',
@@ -16,7 +15,9 @@ const DEFAULT_GH_SETTINGS = {
 export default function AdminPanel() {
   const { projects, addProject, updateProject, deleteProject, publishToGitHub } = useProjects();
   const { t } = useLanguage();
-  const [authenticated, setAuthenticated] = useState(false);
+  const [authenticated, setAuthenticated] = useState(
+    () => sessionStorage.getItem('admin_auth') === '1'
+  );
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [editing, setEditing] = useState(null);
@@ -238,13 +239,23 @@ export default function AdminPanel() {
     document.addEventListener('mouseup', onUp);
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setAuthenticated(true);
-      setPasswordError('');
-    } else {
-      setPasswordError('Incorrect password');
+    setPasswordError('');
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      if (res.ok) {
+        sessionStorage.setItem('admin_auth', '1');
+        setAuthenticated(true);
+      } else {
+        setPasswordError('Incorrect password');
+      }
+    } catch {
+      setPasswordError('Could not reach server. Is the backend running?');
     }
   };
 

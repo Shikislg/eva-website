@@ -6,7 +6,13 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# Route the publish API to the serverless function.
+# Route API calls to serverless functions.
+[[redirects]]
+  from = "/api/auth"
+  to = "/.netlify/functions/auth"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/publish-gallery"
   to = "/.netlify/functions/publish-gallery"
