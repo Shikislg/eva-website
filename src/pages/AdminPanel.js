@@ -7,7 +7,7 @@ import './AdminPanel.css';
 const DEFAULT_GH_SETTINGS = {
   owner: 'Shikislg',
   repo: 'eva-website',
-  branch: 'master',
+  branch: 'Picture-Upload',
   pathPrefix: 'public',
   apiSecret: '',
 };
