@@ -1,5 +1,5 @@
 {
-  "lastPublished": 1785696426860,
+  "lastPublished": 1785696988898,
   "projects": [
     {
       "title": "Schalke 04 U23 - 1. FC Bocholt | Regionalliga West",
@@ -52,6 +52,29 @@
       ],
       "id": "0149cc70-a2b8-4d6b-b9c5-0f75e71ff326",
       "order": 0
+    },
+    {
+      "title": "ETB Schwarz-Weiß Essen - Fortuna Bottrop | Bezirksliga",
+      "year": "2026",
+      "category": "sports",
+      "description": "",
+      "coverImage": "/img/gallery/14bda04a-9a03-4654-84e6-21d7f61981e4/cover.jpg",
+      "images": [
+        "/img/gallery/14bda04a-9a03-4654-84e6-21d7f61981e4/0.jpg",
+        "/img/gallery/14bda04a-9a03-4654-84e6-21d7f61981e4/1.jpg",
+        "/img/gallery/14bda04a-9a03-4654-84e6-21d7f61981e4/2.jpg",
+        "/img/gallery/14bda04a-9a03-4654-84e6-21d7f61981e4/3.jpg",
+        "/img/gallery/14bda04a-9a03-4654-84e6-21d7f61981e4/4.jpg",
+        "/img/gallery/14bda04a-9a03-4654-84e6-21d7f61981e4/5.jpg",
+        "/img/gallery/14bda04a-9a03-4654-84e6-21d7f61981e4/6.jpg",
+        "/img/gallery/14bda04a-9a03-4654-84e6-21d7f61981e4/7.jpg",
+        "/img/gallery/14bda04a-9a03-4654-84e6-21d7f61981e4/8.jpg",
+        "/img/gallery/14bda04a-9a03-4654-84e6-21d7f61981e4/9.jpg",
+        "/img/gallery/14bda04a-9a03-4654-84e6-21d7f61981e4/10.jpg",
+        "/img/gallery/14bda04a-9a03-4654-84e6-21d7f61981e4/11.jpg"
+      ],
+      "id": "14bda04a-9a03-4654-84e6-21d7f61981e4",
+      "order": 1
     }
   ]
 }
