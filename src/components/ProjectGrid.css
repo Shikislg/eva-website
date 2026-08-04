@@ -28,7 +28,9 @@
 
 .project-card-image-wrapper {
   position: relative;
-  aspect-ratio: 21 / 9;
+  /* Placeholder until the image loads and its real aspect ratio is set inline —
+     avoids a layout jump on first paint. */
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: var(--color-bg-accent);
 }
