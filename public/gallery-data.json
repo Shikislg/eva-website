@@ -1,5 +1,5 @@
 {
-  "lastPublished": 1785836271402,
+  "lastPublished": 1785838980231,
   "projects": [
     {
       "title": "Schalke 04 U23 - 1. FC Bocholt | Regionalliga West",
@@ -167,6 +167,34 @@
       ],
       "id": "af581489-19d6-4583-8576-b1e8b5d61d2b",
       "order": 3
+    },
+    {
+      "title": "FC Kürzer - HFC Heine '97 | HLW Finale",
+      "year": "2026",
+      "category": "sports",
+      "description": "",
+      "coverImage": "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/cover.jpg",
+      "images": [
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/0.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/1.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/2.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/3.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/4.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/5.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/6.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/7.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/8.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/9.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/10.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/11.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/12.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/13.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/14.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/15.jpg",
+        "/img/gallery/305d8573-4e05-4e8e-9b1a-f433bad11144/16.jpg"
+      ],
+      "id": "305d8573-4e05-4e8e-9b1a-f433bad11144",
+      "order": 4
     }
   ]
 }
