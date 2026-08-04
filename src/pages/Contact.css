@@ -8,6 +8,7 @@
 
 .contact-content {
   max-width: 500px;
+  width: 100%;
   padding: 4rem 2rem;
   text-align: center;
 }
@@ -27,6 +28,109 @@
   color: var(--color-text-light);
   line-height: 1.7;
   margin-bottom: 2.5rem;
+}
+
+.contact-form {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  margin-bottom: 3rem;
+}
+
+.contact-form-honeypot {
+  display: none;
+}
+
+.contact-form-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.contact-form-required {
+  color: var(--color-primary);
+}
+
+.contact-form-label input,
+.contact-form-label textarea {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  background: var(--color-bg-accent);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1.1rem 1.25rem;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.contact-form-label input::placeholder,
+.contact-form-label textarea::placeholder {
+  color: var(--color-text-light);
+}
+
+.contact-form-label input:focus,
+.contact-form-label textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.contact-form-submit {
+  align-self: flex-start;
+  background: var(--color-text);
+  color: var(--color-bg);
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: 999px;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.contact-form-submit:hover {
+  opacity: 0.85;
+}
+
+.contact-form-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.contact-form-status {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  margin: -0.75rem 0 0;
+}
+
+.contact-form-success {
+  color: var(--color-primary);
+}
+
+.contact-form-error {
+  color: #e05a5a;
+}
+
+.contact-or {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+  margin-bottom: 1rem;
 }
 
 .contact-link {

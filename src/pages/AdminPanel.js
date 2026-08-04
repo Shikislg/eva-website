@@ -13,7 +13,7 @@ const DEFAULT_GH_SETTINGS = {
 };
 
 export default function AdminPanel() {
-  const { projects, addProject, updateProject, deleteProject, publishToGitHub } = useProjects();
+  const { projects, addProject, updateProject, deleteProject, reorderProjects, publishToGitHub } = useProjects();
   const { t } = useLanguage();
   const [authenticated, setAuthenticated] = useState(
     () => sessionStorage.getItem('admin_auth') === '1'
@@ -33,6 +33,10 @@ export default function AdminPanel() {
   const cropContainerRef = useRef(null);
   const cropImgRef = useRef(null);
   const dragRef = useRef(null);
+  const [draggedProjectIndex, setDraggedProjectIndex] = useState(null);
+  const [dragOverProjectIndex, setDragOverProjectIndex] = useState(null);
+  const [draggedImageIndex, setDraggedImageIndex] = useState(null);
+  const [dragOverImageIndex, setDragOverImageIndex] = useState(null);
 
   // GitHub publish settings (persisted in sessionStorage, cleared on tab close)
   const [ghSettings, setGhSettings] = useState(() => {
@@ -325,6 +329,70 @@ export default function AdminPanel() {
     }
   };
 
+  const handleProjectDragStart = (index) => (e) => {
+    setDraggedProjectIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleProjectDragOver = (index) => (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (index !== dragOverProjectIndex) setDragOverProjectIndex(index);
+  };
+
+  const handleProjectDrop = (index) => (e) => {
+    e.preventDefault();
+    if (draggedProjectIndex === null || draggedProjectIndex === index) {
+      setDraggedProjectIndex(null);
+      setDragOverProjectIndex(null);
+      return;
+    }
+    const reordered = [...projects];
+    const [moved] = reordered.splice(draggedProjectIndex, 1);
+    reordered.splice(index, 0, moved);
+    reorderProjects(reordered.map((p, i) => ({ ...p, order: i })));
+    setDraggedProjectIndex(null);
+    setDragOverProjectIndex(null);
+  };
+
+  const handleProjectDragEnd = () => {
+    setDraggedProjectIndex(null);
+    setDragOverProjectIndex(null);
+  };
+
+  const handleImageDragStart = (index) => (e) => {
+    setDraggedImageIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleImageDragOver = (index) => (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (index !== dragOverImageIndex) setDragOverImageIndex(index);
+  };
+
+  const handleImageDrop = (index) => (e) => {
+    e.preventDefault();
+    if (draggedImageIndex === null || draggedImageIndex === index) {
+      setDraggedImageIndex(null);
+      setDragOverImageIndex(null);
+      return;
+    }
+    setForm((prev) => {
+      const imgs = prev.images.split('\n').filter(Boolean);
+      const [moved] = imgs.splice(draggedImageIndex, 1);
+      imgs.splice(index, 0, moved);
+      return { ...prev, images: imgs.join('\n') };
+    });
+    setDraggedImageIndex(null);
+    setDragOverImageIndex(null);
+  };
+
+  const handleImageDragEnd = () => {
+    setDraggedImageIndex(null);
+    setDragOverImageIndex(null);
+  };
+
   const handlePublish = async () => {
     const { apiSecret } = ghSettings;
     if (!apiSecret) {
@@ -552,7 +620,16 @@ export default function AdminPanel() {
             {form.images && (
               <div className="admin-dropped-previews">
                 {form.images.split('\n').filter(Boolean).map((src, i) => (
-                  <div key={i} className="admin-dropped-thumb">
+                  <div
+                    key={i}
+                    className={`admin-dropped-thumb${draggedImageIndex === i ? ' dragging' : ''}${dragOverImageIndex === i && draggedImageIndex !== i ? ' drag-over' : ''}`}
+                    draggable
+                    onDragStart={handleImageDragStart(i)}
+                    onDragOver={handleImageDragOver(i)}
+                    onDrop={handleImageDrop(i)}
+                    onDragEnd={handleImageDragEnd}
+                    title="Drag to reorder"
+                  >
                     <img
                       src={src}
                       alt={`Upload ${i + 1}`}
@@ -602,8 +679,17 @@ export default function AdminPanel() {
           {projects.length === 0 && (
             <p className="admin-empty">{t('admin_empty')}</p>
           )}
-          {projects.map((project) => (
-            <div key={project.id} className="admin-project-item">
+          {projects.map((project, index) => (
+            <div
+              key={project.id}
+              className={`admin-project-item${draggedProjectIndex === index ? ' dragging' : ''}${dragOverProjectIndex === index && draggedProjectIndex !== index ? ' drag-over' : ''}`}
+              draggable
+              onDragStart={handleProjectDragStart(index)}
+              onDragOver={handleProjectDragOver(index)}
+              onDrop={handleProjectDrop(index)}
+              onDragEnd={handleProjectDragEnd}
+            >
+              <span className="admin-drag-handle" title="Drag to reorder">⠿</span>
               <div className="admin-project-thumb">
                 <img src={project.coverImage} alt={project.title} />
               </div>

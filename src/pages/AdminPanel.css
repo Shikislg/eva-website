@@ -215,6 +215,19 @@
   height: 60px;
   border-radius: 4px;
   overflow: hidden;
+  cursor: grab;
+  transition: opacity 0.15s, outline 0.15s;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.admin-dropped-thumb.dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+}
+
+.admin-dropped-thumb.drag-over {
+  outline-color: var(--color-primary);
 }
 
 .admin-dropped-thumb img {
@@ -273,7 +286,26 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 0.75rem 1rem;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, opacity 0.15s, outline 0.15s;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.admin-project-item.dragging {
+  opacity: 0.4;
+}
+
+.admin-project-item.drag-over {
+  outline-color: var(--color-primary);
+}
+
+.admin-drag-handle {
+  cursor: grab;
+  color: var(--color-text-light);
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
 }
 
 .admin-project-item:hover {
