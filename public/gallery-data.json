@@ -1,5 +1,5 @@
 {
-  "lastPublished": 1785839830602,
+  "lastPublished": 1785840460050,
   "projects": [
     {
       "title": "Schalke 04 U23 - 1. FC Bocholt | Regionalliga West",
@@ -144,6 +144,39 @@
       ],
       "id": "305d8573-4e05-4e8e-9b1a-f433bad11144",
       "order": 4
+    },
+    {
+      "title": "Rabbit Cup 2026 | Uniliga 2026",
+      "year": "2026",
+      "category": "sports",
+      "description": "",
+      "coverImage": "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/cover.jpg",
+      "images": [
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/0.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/1.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/2.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/3.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/4.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/5.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/6.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/7.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/8.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/9.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/10.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/11.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/12.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/13.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/14.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/15.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/16.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/17.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/18.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/19.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/20.jpg",
+        "/img/gallery/fd585405-f49a-4f0c-a4eb-59b8720c8582/21.jpg"
+      ],
+      "id": "fd585405-f49a-4f0c-a4eb-59b8720c8582",
+      "order": 5
     }
   ]
 }
