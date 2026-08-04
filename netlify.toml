@@ -14,8 +14,14 @@
   force = true
 
 [[redirects]]
-  from = "/api/publish-gallery"
-  to = "/.netlify/functions/publish-gallery"
+  from = "/api/publish-image-chunk"
+  to = "/.netlify/functions/publish-image-chunk"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/publish-finalize"
+  to = "/.netlify/functions/publish-finalize"
   status = 200
   force = true
 

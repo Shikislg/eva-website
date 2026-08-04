@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useProjects, CATEGORIES } from '../context/ProjectContext';
 import { useLanguage } from '../context/LanguageContext';
-import { compressImageToDataURL } from '../utils/imageUtils';
+import { prepareImageForUpload, getDataURLMimeType, extensionForMimeType } from '../utils/imageUtils';
 import './AdminPanel.css';
 
 const DEFAULT_GH_SETTINGS = {
@@ -24,6 +24,7 @@ export default function AdminPanel() {
   const [showForm, setShowForm] = useState(false);
   const [coverDragOver, setCoverDragOver] = useState(false);
   const [imagesDragOver, setImagesDragOver] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const coverInputRef = useRef(null);
   const imagesInputRef = useRef(null);
   const [cropModal, setCropModal] = useState(null);
@@ -62,28 +63,30 @@ export default function AdminPanel() {
     images: '',
   });
 
-  // Compress a cover image (800 px wide max, 88 % quality) – keeps files small
-  // while preserving enough detail for a portfolio hero image.
-  const readCoverFile = useCallback(
-    (file) => compressImageToDataURL(file, 1200, 1200, 0.88),
-    []
-  );
-
-  // Compress gallery images (1920 px wide max, 82 % quality).
-  const readGalleryFile = useCallback(
-    (file) => compressImageToDataURL(file, 1920, 1920, 0.82),
-    []
-  );
+  // Reject a file whose format the publish pipeline can't name a path for
+  // (drag-and-drop bypasses the <input accept="image/*"> filter, so e.g.
+  // .heic/.tiff/.svg can otherwise slip through, upload fine, but never
+  // render as a public <img>).
+  const validateSupportedImage = useCallback((dataURL) => {
+    const mime = getDataURLMimeType(dataURL);
+    if (!extensionForMimeType(mime)) {
+      setUploadError(`Unsupported image format${mime ? ` (${mime})` : ''}. Use PNG, JPEG, WebP, or GIF.`);
+      return false;
+    }
+    setUploadError('');
+    return true;
+  }, []);
 
   const handleCoverDrop = useCallback(async (e) => {
     e.preventDefault();
     setCoverDragOver(false);
     const file = e.dataTransfer?.files?.[0] || e.target?.files?.[0];
     if (file && file.type.startsWith('image/')) {
-      const dataURL = await readCoverFile(file);
+      const dataURL = await prepareImageForUpload(file);
+      if (!validateSupportedImage(dataURL)) return;
       setForm((prev) => ({ ...prev, coverImage: dataURL }));
     }
-  }, [readCoverFile]);
+  }, [validateSupportedImage]);
 
   const handleImagesDrop = useCallback(async (e) => {
     e.preventDefault();
@@ -95,14 +98,15 @@ export default function AdminPanel() {
     const dataURLs = [];
     for (let i = 0; i < files.length; i += 5) {
       const batch = files.slice(i, i + 5);
-      const results = await Promise.all(batch.map(readGalleryFile));
+      const results = await Promise.all(batch.map(prepareImageForUpload));
       dataURLs.push(...results);
     }
+    const supported = dataURLs.filter(validateSupportedImage);
     setForm((prev) => {
       const existing = prev.images ? prev.images.split('\n').filter(Boolean) : [];
-      return { ...prev, images: [...existing, ...dataURLs].join('\n') };
+      return { ...prev, images: [...existing, ...supported].join('\n') };
     });
-  }, [readGalleryFile]);
+  }, [validateSupportedImage]);
 
   const preventDefaults = (e) => {
     e.preventDefault();
@@ -132,7 +136,13 @@ export default function AdminPanel() {
       canvas.height = Math.round(sh);
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-      const cropped = canvas.toDataURL('image/jpeg', 0.92);
+      // Cropping unavoidably rasterizes through canvas, so this is the one place true
+      // losslessness isn't achievable. PNG stays PNG (lossless, keeps transparency);
+      // anything else falls back to best-effort high-quality JPEG.
+      const sourceMime = getDataURLMimeType(cropModal.src);
+      const cropped = sourceMime === 'image/png'
+        ? canvas.toDataURL('image/png')
+        : canvas.toDataURL('image/jpeg', 0.95);
       if (cropModal.type === 'cover') {
         setForm((prev) => ({ ...prev, coverImage: cropped }));
       } else {
@@ -481,6 +491,7 @@ export default function AdminPanel() {
                 rows={3}
               />
             </label>
+            {uploadError && <span className="admin-error">{uploadError}</span>}
             <label>{t('admin_label_cover')}</label>
             <div
               className={`admin-dropzone${coverDragOver ? ' dragover' : ''}`}

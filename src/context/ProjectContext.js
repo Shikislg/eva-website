@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { blobChunkToBase64, getDataURLMimeType } from '../utils/imageUtils';
 
 const ProjectContext = createContext();
 
@@ -223,15 +224,57 @@ export function ProjectProvider({ children }) {
 
   const getProject = (id) => projects.find((p) => p.id === id);
 
+  const CHUNK_BYTES = 3 * 1024 * 1024; // 3MB raw (~4MB base64) — safely under Netlify's 6MB request ceiling
+
+  async function readJsonError(res, fallback) {
+    try {
+      const text = await res.text();
+      return JSON.parse(text).error || fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  /**
+   * Upload one image's exact original bytes to GitHub as a Git blob, in chunks so no
+   * single request exceeds Netlify's payload ceiling regardless of source file size.
+   * Returns the final `{ path, blobSha }` once every chunk has been sent.
+   */
+  async function uploadImageInChunks({ owner, repo, apiSecret, projectId, slot, index, dataURL, onChunk }) {
+    const blob = await (await fetch(dataURL)).blob();
+    const mimeType = blob.type || getDataURLMimeType(dataURL);
+    const totalChunks = Math.max(1, Math.ceil(blob.size / CHUNK_BYTES));
+    const uploadId = `${projectId}-${slot}-${index ?? 'x'}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    let last;
+    for (let i = 0; i < totalChunks; i++) {
+      const chunk = blob.slice(i * CHUNK_BYTES, (i + 1) * CHUNK_BYTES);
+      const chunkBase64 = await blobChunkToBase64(chunk);
+      const res = await fetch('/api/publish-image-chunk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Publish-Secret': apiSecret },
+        body: JSON.stringify({
+          owner, repo, uploadId, projectId, slot, index, mimeType,
+          chunkIndex: i, totalChunks, chunkBase64,
+        }),
+      });
+      if (!res.ok) throw new Error(await readJsonError(res, `Image upload failed (chunk ${i + 1}/${totalChunks})`));
+      last = await res.json();
+      onChunk?.(i + 1, totalChunks);
+    }
+    return last; // { path, blobSha } from the final chunk's response
+  }
+
   /**
    * Publish all projects to GitHub.
    *
-   * For every image stored as a data URL (data:…) the function:
-   *   1. Commits the JPEG to `{pathPrefix}/img/gallery/{projectId}/cover.jpg` (or `{index}.jpg`)
-   *   2. Replaces the data URL in state with the relative path `/img/gallery/…`
-   *
-   * Then commits `{pathPrefix}/gallery-data.json` with the updated project list
-   * and a `lastPublished` timestamp so other devices stay in sync.
+   * Every image still stored as a data URL (data:…) is uploaded byte-for-byte (no resize
+   * or recompression) via chunked calls to `/api/publish-image-chunk`, which creates a
+   * GitHub Git blob and returns its path/sha. Once every image has a blob, a single call
+   * to `/api/publish-finalize` builds one atomic commit — updated images, orphaned image
+   * deletions, and `{pathPrefix}/gallery-data.json` (with a fresh `lastPublished`
+   * timestamp) all land in one tree/commit, so a mid-publish failure can't leave the
+   * site half-updated.
    *
    * @param {{ owner: string, repo: string, apiSecret?: string,
    *           branch?: string, pathPrefix?: string }} config
@@ -241,33 +284,62 @@ export function ProjectProvider({ children }) {
     { owner, repo, apiSecret = '', branch = 'master', pathPrefix = 'public' },
     onProgress
   ) => {
-    onProgress?.({ step: 1, total: 2, message: 'Sending publish request…' });
+    const tasks = [];
+    for (const project of projects) {
+      if (typeof project.coverImage === 'string' && project.coverImage.startsWith('data:')) {
+        tasks.push({ projectId: project.id, slot: 'cover', src: project.coverImage });
+      }
+      (project.images || []).forEach((src, index) => {
+        if (typeof src === 'string' && src.startsWith('data:')) {
+          tasks.push({ projectId: project.id, slot: 'gallery', index, src });
+        }
+      });
+    }
 
-    const res = await fetch('/api/publish-gallery', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Publish-Secret': apiSecret,
-      },
-      body: JSON.stringify({ owner, repo, branch, pathPrefix, projects }),
+    const total = tasks.length + 1; // +1 for the finalize step
+    const manifest = [];
+    for (let i = 0; i < tasks.length; i++) {
+      const task = tasks[i];
+      const result = await uploadImageInChunks({
+        owner, repo, apiSecret,
+        projectId: task.projectId, slot: task.slot, index: task.index, dataURL: task.src,
+        onChunk: (c, of) => onProgress?.({
+          step: i, total, message: `Uploading image ${i + 1}/${tasks.length} (chunk ${c}/${of})…`,
+        }),
+      });
+      manifest.push({ path: result.path, blobSha: result.blobSha });
+      task.finalPath = result.path;
+    }
+
+    const updatedProjects = projects.map((project) => {
+      const coverTask = tasks.find((t) => t.projectId === project.id && t.slot === 'cover');
+      return {
+        ...project,
+        coverImage: coverTask ? coverTask.finalPath : project.coverImage,
+        images: (project.images || []).map((src, index) => {
+          const task = tasks.find((t) => t.projectId === project.id && t.slot === 'gallery' && t.index === index);
+          return task ? task.finalPath : src;
+        }),
+      };
     });
 
-    if (!res.ok) {
-      const text = await res.text();
-      let msg = `Publish API error ${res.status}`;
-      try { msg = JSON.parse(text).error || msg; } catch {}
-      throw new Error(msg);
-    }
+    onProgress?.({ step: tasks.length, total, message: 'Finalizing publish…' });
+    const res = await fetch('/api/publish-finalize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Publish-Secret': apiSecret },
+      body: JSON.stringify({ owner, repo, branch, pathPrefix, projects: updatedProjects, imageManifest: manifest }),
+    });
+    if (!res.ok) throw new Error(await readJsonError(res, `Publish API error ${res.status}`));
 
     const payload = await res.json();
     const timestamp = payload.lastPublished || Date.now();
-    const updatedProjects = Array.isArray(payload.projects) ? payload.projects : projects;
+    const finalProjects = Array.isArray(payload.projects) ? payload.projects : updatedProjects;
 
-    onProgress?.({ step: 2, total: 2, message: 'Publish completed.' });
+    onProgress?.({ step: total, total, message: 'Publish completed.' });
 
     // Update local state — use the publish timestamp so comparisons stay stable
     pendingLastModified.current = timestamp;
-    setProjects(updatedProjects);
+    setProjects(finalProjects);
     // Ensure lastModified is saved with the exact publish timestamp
     await idbSet('lastModified', timestamp);
   };

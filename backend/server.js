@@ -7,7 +7,7 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(express.json({ limit: '100mb' }));
+app.use(express.json({ limit: '10mb' }));
 
 const token =
   process.env.GITHUB_PAT ||
@@ -16,42 +16,52 @@ const token =
   '';
 const publishSecret = process.env.PUBLISH_API_SECRET || '';
 
-function dataURLToBase64(dataURL) {
-  const match = /^data:.*?;base64,(.*)$/.exec(dataURL || '');
-  return match ? match[1] : '';
-}
+const MIME_TO_EXTENSION = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+};
 
-function stringToBase64(str) {
-  return Buffer.from(str, 'utf8').toString('base64');
-}
-
-async function githubGetFileSHA(authToken, owner, repo, branch, path) {
-  try {
-    const res = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-          Accept: 'application/vnd.github+json',
-        },
-      }
-    );
-
-    if (res.ok) {
-      const data = await res.json();
-      return data.sha || null;
-    }
-  } catch {
-    // Return null when SHA lookup fails so create/update can still attempt.
+// In-memory staging for chunked image uploads (uploadId -> { chunks: Buffer[], createdAt }).
+// The Express process is long-lived (unlike a Netlify Function invocation), so a plain
+// Map is sufficient — no durable storage needed.
+const pendingUploads = new Map();
+const STALE_UPLOAD_MS = 30 * 60 * 1000;
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, entry] of pendingUploads) {
+    if (now - entry.createdAt > STALE_UPLOAD_MS) pendingUploads.delete(id);
   }
+}, 10 * 60 * 1000);
 
-  return null;
+async function githubApi(authToken, method, url, body) {
+  const res = await fetch(url, {
+    method,
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/vnd.github+json',
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    let msg = `GitHub API error ${res.status}`;
+    try {
+      msg = JSON.parse(text).message || msg;
+    } catch {
+      // Keep fallback message.
+    }
+    throw new Error(msg);
+  }
+  return res.status === 204 ? null : res.json();
 }
 
-async function githubGetFileContent(authToken, owner, repo, branch, path) {
+async function githubGetFileContent(authToken, owner, repo, branch, filePath) {
   try {
     const res = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`,
+      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}?ref=${encodeURIComponent(branch)}`,
       {
         headers: {
           Authorization: `Bearer ${authToken}`,
@@ -73,24 +83,6 @@ async function githubGetFileContent(authToken, owner, repo, branch, path) {
   return null;
 }
 
-async function githubDeleteFile(authToken, owner, repo, branch, path, message) {
-  const sha = await githubGetFileSHA(authToken, owner, repo, branch, path);
-  if (!sha) return; // Already gone.
-
-  await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`,
-    {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/vnd.github+json',
-      },
-      body: JSON.stringify({ message, sha, branch }),
-    }
-  );
-}
-
 function collectManagedImagePaths(projects, pathPrefix) {
   const paths = new Set();
   const prefix = '/img/gallery/';
@@ -107,36 +99,63 @@ function collectManagedImagePaths(projects, pathPrefix) {
   return paths;
 }
 
-async function githubCommitFile(authToken, owner, repo, branch, path, base64Content, message) {
-  const sha = await githubGetFileSHA(authToken, owner, repo, branch, path);
-  const body = { message, content: base64Content, branch };
-  if (sha) body.sha = sha;
+async function githubCreateBlob(authToken, owner, repo, base64Content) {
+  const data = await githubApi(authToken, 'POST', `https://api.github.com/repos/${owner}/${repo}/git/blobs`, {
+    content: base64Content,
+    encoding: 'base64',
+  });
+  return data.sha;
+}
 
-  const res = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`,
-    {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/vnd.github+json',
-      },
-      body: JSON.stringify(body),
-    }
+async function githubGetBranchHead(authToken, owner, repo, branch) {
+  const data = await githubApi(
+    authToken, 'GET',
+    `https://api.github.com/repos/${owner}/${repo}/branches/${encodeURIComponent(branch)}`
   );
+  return { commitSha: data.commit.sha, treeSha: data.commit.commit.tree.sha };
+}
 
-  if (!res.ok) {
-    const text = await res.text();
-    let msg = `GitHub API error ${res.status}`;
-    try {
-      msg = JSON.parse(text).message || msg;
-    } catch {
-      // Keep fallback message.
-    }
-    throw new Error(msg);
+async function githubCreateTree(authToken, owner, repo, baseTreeSha, tree) {
+  const data = await githubApi(authToken, 'POST', `https://api.github.com/repos/${owner}/${repo}/git/trees`, {
+    base_tree: baseTreeSha,
+    tree,
+  });
+  return data.sha;
+}
+
+async function githubCreateCommit(authToken, owner, repo, treeSha, parentSha, message) {
+  const data = await githubApi(authToken, 'POST', `https://api.github.com/repos/${owner}/${repo}/git/commits`, {
+    message,
+    tree: treeSha,
+    parents: [parentSha],
+  });
+  return data.sha;
+}
+
+async function githubUpdateRef(authToken, owner, repo, branch, commitSha) {
+  await githubApi(
+    authToken, 'PATCH',
+    `https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${encodeURIComponent(branch)}`,
+    { sha: commitSha }
+  );
+}
+
+function checkAuth(req, res) {
+  if (!publishSecret) {
+    res.status(500).json({ error: 'Server publish secret missing. Set PUBLISH_API_SECRET in .env.' });
+    return false;
   }
-
-  return res.json();
+  if ((req.get('X-Publish-Secret') || '') !== publishSecret) {
+    res.status(401).json({ error: 'Unauthorized publish request.' });
+    return false;
+  }
+  if (!token) {
+    res.status(500).json({
+      error: 'Server token missing. Set GITHUB_PAT (or PERSONAL_ACCESS_TOKEN / Personal_Access_Token) in .env.',
+    });
+    return false;
+  }
+  return true;
 }
 
 app.post('/api/auth', (req, res) => {
@@ -150,23 +169,51 @@ app.post('/api/auth', (req, res) => {
   return res.json({ ok: true });
 });
 
-app.post('/api/publish-gallery', async (req, res) => {
-  if (!publishSecret) {
-    return res.status(500).json({
-      error: 'Server publish secret missing. Set PUBLISH_API_SECRET in .env.',
-    });
+app.post('/api/publish-image-chunk', async (req, res) => {
+  if (!checkAuth(req, res)) return;
+
+  const { owner, repo, uploadId, projectId, slot, index, mimeType, chunkIndex, totalChunks, chunkBase64 } = req.body || {};
+
+  if (!owner || !repo || !uploadId || !projectId || !slot || typeof chunkIndex !== 'number' || typeof totalChunks !== 'number' || !chunkBase64) {
+    return res.status(400).json({ error: 'Missing required chunk fields.' });
   }
 
-  const headerSecret = req.get('X-Publish-Secret') || '';
-  if (headerSecret !== publishSecret) {
-    return res.status(401).json({ error: 'Unauthorized publish request.' });
+  const extension = MIME_TO_EXTENSION[mimeType];
+  if (!extension) {
+    return res.status(400).json({ error: `Unsupported image type: ${mimeType}` });
   }
 
-  if (!token) {
-    return res.status(500).json({
-      error: 'Server token missing. Set GITHUB_PAT (or PERSONAL_ACCESS_TOKEN / Personal_Access_Token) in .env.',
-    });
+  try {
+    let entry = pendingUploads.get(uploadId);
+    if (!entry) {
+      entry = { chunks: [], createdAt: Date.now() };
+      pendingUploads.set(uploadId, entry);
+    }
+    entry.chunks[chunkIndex] = Buffer.from(chunkBase64, 'base64');
+
+    if (chunkIndex < totalChunks - 1) {
+      return res.json({ received: true, chunkIndex });
+    }
+
+    const full = Buffer.concat(entry.chunks);
+    pendingUploads.delete(uploadId);
+
+    if (full.length > 100 * 1024 * 1024) {
+      return res.status(413).json({ error: 'Image exceeds the 100MB GitHub blob limit.' });
+    }
+
+    const gitPath = slot === 'cover' ? `cover.${extension}` : `${index}.${extension}`;
+    const publicPath = `/img/gallery/${projectId}/${gitPath}`;
+    const blobSha = await githubCreateBlob(token, owner, repo, full.toString('base64'));
+
+    return res.json({ received: true, done: true, path: publicPath, blobSha, size: full.length });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || 'Image upload failed.' });
   }
+});
+
+app.post('/api/publish-finalize', async (req, res) => {
+  if (!checkAuth(req, res)) return;
 
   const {
     owner,
@@ -174,12 +221,12 @@ app.post('/api/publish-gallery', async (req, res) => {
     branch = 'master',
     pathPrefix = 'public',
     projects,
+    imageManifest = [],
   } = req.body || {};
 
   if (!owner || !repo) {
     return res.status(400).json({ error: 'owner and repo are required.' });
   }
-
   if (!Array.isArray(projects)) {
     return res.status(400).json({ error: 'projects must be an array.' });
   }
@@ -197,71 +244,37 @@ app.post('/api/publish-gallery', async (req, res) => {
       }
     }
     const previousImagePaths = collectManagedImagePaths(previousProjects, pathPrefix);
+    const newImagePaths = collectManagedImagePaths(projects, pathPrefix);
+    const orphanedPaths = [...previousImagePaths].filter((p) => !newImagePaths.has(p));
 
     const timestamp = Date.now();
-    const updatedProjects = [];
+    const galleryData = { lastPublished: timestamp, projects };
 
-    for (const project of projects) {
-      let coverImage = project.coverImage;
+    const tree = [
+      ...imageManifest.map(({ path: imgPath, blobSha }) => ({
+        path: `${pathPrefix}${imgPath}`,
+        mode: '100644',
+        type: 'blob',
+        sha: blobSha,
+      })),
+      ...orphanedPaths.map((orphanPath) => ({
+        path: orphanPath,
+        mode: '100644',
+        type: 'blob',
+        sha: null,
+      })),
+      {
+        path: galleryDataPath,
+        mode: '100644',
+        type: 'blob',
+        content: JSON.stringify(galleryData, null, 2),
+      },
+    ];
 
-      if (typeof coverImage === 'string' && coverImage.startsWith('data:')) {
-        const filePath = `${pathPrefix}/img/gallery/${project.id}/cover.jpg`;
-        await githubCommitFile(
-          token,
-          owner,
-          repo,
-          branch,
-          filePath,
-          dataURLToBase64(coverImage),
-          `Add cover image for ${project.title}`
-        );
-        coverImage = `/img/gallery/${project.id}/cover.jpg`;
-      }
-
-      const updatedImages = [];
-      const images = Array.isArray(project.images) ? project.images : [];
-
-      for (let i = 0; i < images.length; i++) {
-        let imgSrc = images[i];
-        if (typeof imgSrc === 'string' && imgSrc.startsWith('data:')) {
-          const filePath = `${pathPrefix}/img/gallery/${project.id}/${i}.jpg`;
-          await githubCommitFile(
-            token,
-            owner,
-            repo,
-            branch,
-            filePath,
-            dataURLToBase64(imgSrc),
-            `Add gallery image for ${project.title}`
-          );
-          imgSrc = `/img/gallery/${project.id}/${i}.jpg`;
-        }
-        updatedImages.push(imgSrc);
-      }
-
-      updatedProjects.push({ ...project, coverImage, images: updatedImages });
-    }
-
-    const newImagePaths = collectManagedImagePaths(updatedProjects, pathPrefix);
-    const orphanedPaths = [...previousImagePaths].filter((p) => !newImagePaths.has(p));
-    for (const orphanPath of orphanedPaths) {
-      await githubDeleteFile(token, owner, repo, branch, orphanPath, `Remove unused gallery image ${orphanPath}`);
-    }
-
-    const galleryData = {
-      lastPublished: timestamp,
-      projects: updatedProjects,
-    };
-
-    await githubCommitFile(
-      token,
-      owner,
-      repo,
-      branch,
-      galleryDataPath,
-      stringToBase64(JSON.stringify(galleryData, null, 2)),
-      'Update gallery data'
-    );
+    const { commitSha: baseCommitSha, treeSha: baseTreeSha } = await githubGetBranchHead(token, owner, repo, branch);
+    const newTreeSha = await githubCreateTree(token, owner, repo, baseTreeSha, tree);
+    const newCommitSha = await githubCreateCommit(token, owner, repo, newTreeSha, baseCommitSha, 'Update gallery data');
+    await githubUpdateRef(token, owner, repo, branch, newCommitSha);
 
     return res.json(galleryData);
   } catch (error) {
