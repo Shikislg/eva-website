@@ -1,5 +1,5 @@
 {
-  "lastPublished": 1785697933127,
+  "lastPublished": 1785847929829,
   "projects": [
     {
       "title": "Schalke 04 U23 - 1. FC Bocholt | Regionalliga West",
@@ -114,6 +114,16 @@
       ],
       "id": "fd5bb7be-d48d-4f1a-8349-9d874e43056b",
       "order": 2
+    },
+    {
+      "id": "e2e-test-project",
+      "title": "__E2E_TEST_SAFE_TO_DELETE__",
+      "year": "2026",
+      "category": "sports",
+      "description": "Automated end-to-end test of the new chunked publish pipeline. Safe to delete.",
+      "coverImage": "/img/gallery/e2e-test-project/cover.png",
+      "images": [],
+      "order": 3
     }
   ]
 }
