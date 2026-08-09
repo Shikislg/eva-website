@@ -16,7 +16,7 @@ function App() {
   return (
     <LanguageProvider>
     <ProjectProvider>
-      <Router>
+      <Router basename={process.env.PUBLIC_URL || '/'}>
         <div className="app">
           <Header />
           <Routes>

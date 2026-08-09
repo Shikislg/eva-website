@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useProjects } from '../context/ProjectContext';
 import { useLanguage } from '../context/LanguageContext';
+import { assetUrl } from '../utils/assetUrl';
 import './ProjectGrid.css';
 
 export default function ProjectGrid({ category }) {
@@ -31,7 +32,7 @@ export default function ProjectGrid({ category }) {
           >
             <div className="project-card-image-wrapper">
               <img
-                src={project.coverImage}
+                src={assetUrl(project.coverImage)}
                 alt={project.title}
                 className="project-card-image"
                 loading="lazy"

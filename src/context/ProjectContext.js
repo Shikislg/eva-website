@@ -165,7 +165,7 @@ export function ProjectProvider({ children }) {
           // Try to load a remotely published gallery-data.json
           let remoteData = null;
           try {
-            const res = await fetch('/gallery-data.json', { cache: 'no-cache' });
+            const res = await fetch(`${process.env.PUBLIC_URL}/gallery-data.json`, { cache: 'no-cache' });
             if (res.ok) {
               const json = await res.json();
               if (json?.projects?.length && json.lastPublished) remoteData = json;

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { useProjects } from '../context/ProjectContext';
 import { useLanguage } from '../context/LanguageContext';
+import { assetUrl } from '../utils/assetUrl';
 import './ProjectDetail.css';
 
 /**
@@ -101,7 +102,7 @@ export default function ProjectDetail() {
             onClick={() => openLightbox(index)}
           >
             <LazyImage
-              src={img}
+              src={assetUrl(img)}
               alt={`${project.title} - ${index + 1}`}
             />
           </div>
@@ -124,7 +125,7 @@ export default function ProjectDetail() {
           </button>
           <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
             <img
-              src={project.images[lightboxIndex]}
+              src={assetUrl(project.images[lightboxIndex])}
               alt={`${project.title} - ${lightboxIndex + 1}`}
             />
             <span className="lightbox-counter">
