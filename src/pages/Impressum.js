@@ -30,7 +30,7 @@ function ImpressumDE() {
         <p>
           <strong>Kontakt</strong><br />
           {/* TODO: echte E-Mail-Adresse eintragen */}
-          E-Mail: <a href="mailto:whateva.jpg@web.de">kontakt@evawagner.de</a>
+          E-Mail: <a href="mailto:whateva.jpg@web.de">whateva.jpg@web.de</a>
         </p>
         <p>
           <strong>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</strong><br />
@@ -76,7 +76,7 @@ function ImpressumEN() {
         </p>
         <p>
           <strong>Contact</strong><br />
-          Email: <a href="mailto:whateva.jpg@web.de">kontakt@evawagner.de</a>
+          Email: <a href="mailto:whateva.jpg@web.de">whateva.jpg@web.de</a>
         </p>
         <p>
           <strong>Responsible for content pursuant to § 18 (2) MStV</strong><br />
