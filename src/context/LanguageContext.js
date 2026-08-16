@@ -23,9 +23,9 @@ const translations = {
 
     // About
     about_title: 'About',
-    about_p1: "I'm <strong>Eva Wagner</strong> — a photographer based in Germany with a passion for capturing authentic moments and visual stories. I focus on sports and concert photography, where I find endless inspiration in the energy,",
-    about_p2: "I believe every frame tells a story. Whether it's the quiet beauty of a natural landscape or the raw energy of a live event, I strive to create images that resonate and endure.",
-    about_p3: 'Currently available for commissions, collaborations, and creative projects.',
+    about_p1: "I am Eva – a music enthusiast who spends her weekends in football stadiums, supporting my favourite clubs Fortuna Düsseldorf and SV Elversberg. I have always been the one who anticipated moments and captured them: first with my phone, then more seriously once I started photographing the university football team – a passion project I already did social media for. Seeing people’s faces light up when they looked at my photos made me realize how fulfilling this could be. I discovered that, with photography, I could combine the exhilarating energy of two things I am deeply passionate about: concerts and football.",
+    about_p2: "Growing up as a fangirl who adores pop music and becoming a football fan only after turning 18, I noticed that those two groups of fans have much more in common than many people think; but one in particular is the feeling of being in the moment. Whether it’s dancing around to your favourite song being performed live or the electrifying seconds just before a penalty: <em class=\"about-emotion\">I love to capture emotion.</em>",
+    about_p3: 'If you like my work or are interested in collaborating, feel free to contact me!',
 
     // Contact
     contact_title: 'Contact',
@@ -103,9 +103,9 @@ const translations = {
 
     // About
     about_title: 'Über mich',
-    about_p1: 'Ich bin <strong>Eva Wagner</strong> — eine in Deutschland ansässige Fotografin mit einer Leidenschaft für authentische Momente und visuelle Geschichten. Mein Schwerpunkt liegt auf Sport- und Konzertfotografie, wo ich endlose Inspiration in der Energie finde.',
-    about_p2: 'Ich glaube, dass jedes Bild eine Geschichte erzählt. Ob die stille Schönheit einer Naturlandschaft oder die rohe Energie eines Live-Events — ich strebe danach, Bilder zu schaffen, die berühren und bleiben.',
-    about_p3: 'Derzeit verfügbar für Aufträge, Kooperationen und kreative Projekte.',
+    about_p1: 'Ich bin Eva – eine Musikenthusiastin, die ihre Wochenenden in Fußballstadien verbringt, um meine Lieblingsvereine Fortuna Düsseldorf und SV Elversberg anzufeuern. Ich war schon immer jemand, der besondere Momente antizipieren und festhalten konnte: zuerst mit meinem Handy, später dann professioneller, als ich anfing, ein Fußballteam meiner Universität zu fotografieren – ein Herzensprojekt, für das ich bereits den Instagram-Account betreute. Die Freude der Menschen zu sehen, wenn sie meine Fotos anschauten, machte mir klar, wie erfüllend das sein kann. Ich entdeckte, dass ich mit der Fotografie die mitreißende Energie zweier Dinge verbinden konnte, für die ich eine tiefe Leidenschaft habe: Konzerte und Fußball.',
+    about_p2: 'Aufgewachsen als Fangirl, welches Popmusik liebt, und als Fußballfan – erst seit meinem 18. Lebensjahr – ist mir aufgefallen, dass beiden Fangruppen viel mehr gemeinsam haben, als viele Menschen denken; vor allem ist es das Gefühl, ganz im Moment zu sein. Ob man nun zu seinem Lieblingssong tanzt, der live gespielt wird, oder die elektrisierenden Sekunden kurz vor einem Elfmeter erlebt: <em class="about-emotion">I love to capture emotion.</em>',
+    about_p3: 'Wenn dir meine Arbeit gefällt oder du an einer Zusammenarbeit interessiert bist, melde dich gerne bei mir!',
 
     // Contact
     contact_title: 'Kontakt',

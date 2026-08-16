@@ -33,6 +33,12 @@
   font-weight: 500;
 }
 
+.about-emotion {
+  font-style: italic;
+  color: var(--color-primary);
+  letter-spacing: 0.04em;
+}
+
 .impressum-content,
 .impressum-content .about-body p {
   text-align: center;

@@ -11,8 +11,8 @@ export default function About() {
         <h1>{t('about_title')}</h1>
         <div className="about-body">
           <p dangerouslySetInnerHTML={{ __html: t('about_p1') }} />
-          <p>{t('about_p2')}</p>
-          <p>{t('about_p3')}</p>
+          <p dangerouslySetInnerHTML={{ __html: t('about_p2') }} />
+          <p dangerouslySetInnerHTML={{ __html: t('about_p3') }} />
         </div>
       </div>
     </div>
