@@ -109,7 +109,7 @@ const translations = {
 
     // Contact
     contact_title: 'Kontakt',
-    contact_intro: 'Interesse an einer Zusammenarbeit? Ich freue mich von Ihnen zu hören.',
+    contact_intro: 'Interesse an einer Zusammenarbeit? Ich freue mich von dir zu hören.',
     contact_instagram: 'Instagram',
     contact_linkedin: 'LinkedIn',
     contact_form_name: 'Name',
