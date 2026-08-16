@@ -32,3 +32,8 @@
   color: var(--color-text);
   font-weight: 500;
 }
+
+.impressum-content,
+.impressum-content .about-body p {
+  text-align: center;
+}

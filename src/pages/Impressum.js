@@ -7,7 +7,7 @@ export default function Impressum() {
 
   return (
     <div className="about-page">
-      <div className="about-content">
+      <div className="about-content impressum-content">
         {lang === 'de' ? <ImpressumDE /> : <ImpressumEN />}
       </div>
     </div>
@@ -48,6 +48,19 @@ function ImpressumDE() {
           diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8–10
           TMG bin ich als Diensteanbieter jedoch nicht verpflichtet, übermittelte
           oder gespeicherte fremde Informationen zu überwachen.
+        </p>
+        <p>
+          <strong>Haftung für Links</strong><br />
+          Meine Website enthält Links zu externen Websites Dritter, auf deren
+          Inhalte ich keinen Einfluss habe. Deshalb kann ich für diese fremden
+          Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten
+          Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten
+          verantwortlich. Die verlinkten Seiten wurden zum Zeitpunkt der Verlinkung
+          auf mögliche Rechtsverstöße überprüft. Rechtswidrige Inhalte waren zum
+          Zeitpunkt der Verlinkung nicht erkennbar. Eine permanente inhaltliche
+          Kontrolle der verlinkten Seiten ist jedoch ohne konkrete Anhaltspunkte
+          einer Rechtsverletzung nicht zumutbar. Bei Bekanntwerden von
+          Rechtsverletzungen werde ich derartige Links umgehend entfernen.
         </p>
         <p>
           <strong>Urheberrecht</strong><br />
@@ -94,6 +107,18 @@ function ImpressumEN() {
           pages in accordance with general law (§ 7 (1) TMG). However, I am not
           obligated to monitor transmitted or stored third-party information
           (§§ 8-10 TMG).
+        </p>
+        <p>
+          <strong>Liability for Links</strong><br />
+          This website contains links to external third-party websites over whose
+          content I have no control. I therefore cannot accept any liability for
+          this external content. The respective provider or operator of the linked
+          pages is always responsible for their content. The linked pages were
+          checked for possible legal violations at the time of linking. No illegal
+          content was apparent at the time of linking. A permanent review of the
+          linked pages is not reasonable without concrete evidence of a legal
+          violation. Upon notification of any such violation, I will remove the
+          relevant links immediately.
         </p>
         <p>
           <strong>Copyright</strong><br />
