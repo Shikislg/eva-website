@@ -1,5 +1,5 @@
 {
-  "lastPublished": 1786897226488,
+  "lastPublished": 1786898509559,
   "projects": [
     {
       "titles": {
@@ -334,6 +334,40 @@
       ],
       "id": "c7a4c698-549a-4bb8-812c-0f83f293e752",
       "order": 9
+    },
+    {
+      "titles": {
+        "en": "Viktoria köln - jahn regensburg | 3. Liga",
+        "de": "Viktoria köln - jahn regensburg | 3. Liga"
+      },
+      "year": "2026",
+      "category": "sports",
+      "description": "",
+      "coverImage": "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/cover.png",
+      "images": [
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/0.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/1.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/2.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/3.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/4.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/5.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/6.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/7.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/8.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/9.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/10.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/11.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/12.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/13.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/14.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/15.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/16.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/17.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/18.png",
+        "/img/gallery/fb586ba7-668b-4086-be1d-e4101379338b/19.png"
+      ],
+      "id": "fb586ba7-668b-4086-be1d-e4101379338b",
+      "order": 10
     }
   ]
 }
