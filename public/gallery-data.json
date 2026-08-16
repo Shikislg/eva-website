@@ -1,5 +1,5 @@
 {
-  "lastPublished": 1786893680430,
+  "lastPublished": 1786897226488,
   "projects": [
     {
       "titles": {
@@ -290,6 +290,50 @@
       ],
       "id": "3ec11004-f96b-42f0-82f6-226d672871bc",
       "order": 8
+    },
+    {
+      "titles": {
+        "en": "hangover 96 | uniliga 2026",
+        "de": "hangover 96 | uniliga 2026"
+      },
+      "year": "2026",
+      "category": "sports",
+      "description": "",
+      "coverImage": "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/cover.png",
+      "images": [
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/0.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/1.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/2.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/3.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/4.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/5.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/6.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/7.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/8.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/9.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/10.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/11.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/12.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/13.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/14.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/15.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/16.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/17.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/18.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/19.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/20.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/21.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/22.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/23.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/24.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/25.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/26.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/27.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/28.jpg",
+        "/img/gallery/c7a4c698-549a-4bb8-812c-0f83f293e752/29.jpg"
+      ],
+      "id": "c7a4c698-549a-4bb8-812c-0f83f293e752",
+      "order": 9
     }
   ]
 }
