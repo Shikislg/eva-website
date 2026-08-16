@@ -1,5 +1,5 @@
 {
-  "lastPublished": 1786893011545,
+  "lastPublished": 1786893680430,
   "projects": [
     {
       "titles": {
@@ -264,6 +264,32 @@
       ],
       "id": "15a33b6e-55d2-4892-9728-308c746401d1",
       "order": 7
+    },
+    {
+      "titles": {
+        "en": "Ruka | EP Release Show",
+        "de": "Ruka | EP Release Show"
+      },
+      "year": "2026",
+      "category": "concerts",
+      "description": "",
+      "coverImage": "/img/gallery/3ec11004-f96b-42f0-82f6-226d672871bc/cover.png",
+      "images": [
+        "/img/gallery/3ec11004-f96b-42f0-82f6-226d672871bc/0.jpg",
+        "/img/gallery/3ec11004-f96b-42f0-82f6-226d672871bc/1.jpg",
+        "/img/gallery/3ec11004-f96b-42f0-82f6-226d672871bc/2.jpg",
+        "/img/gallery/3ec11004-f96b-42f0-82f6-226d672871bc/3.jpg",
+        "/img/gallery/3ec11004-f96b-42f0-82f6-226d672871bc/4.jpg",
+        "/img/gallery/3ec11004-f96b-42f0-82f6-226d672871bc/5.jpg",
+        "/img/gallery/3ec11004-f96b-42f0-82f6-226d672871bc/6.jpg",
+        "/img/gallery/3ec11004-f96b-42f0-82f6-226d672871bc/7.jpg",
+        "/img/gallery/3ec11004-f96b-42f0-82f6-226d672871bc/8.jpg",
+        "/img/gallery/3ec11004-f96b-42f0-82f6-226d672871bc/9.jpg",
+        "/img/gallery/3ec11004-f96b-42f0-82f6-226d672871bc/10.jpg",
+        "/img/gallery/3ec11004-f96b-42f0-82f6-226d672871bc/11.jpg"
+      ],
+      "id": "3ec11004-f96b-42f0-82f6-226d672871bc",
+      "order": 8
     }
   ]
 }
