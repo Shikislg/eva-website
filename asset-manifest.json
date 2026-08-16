@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/eva-website/static/css/main.06a063b1.css",
-    "main.js": "/eva-website/static/js/main.18fc0e82.js",
+    "main.js": "/eva-website/static/js/main.5bff4b9d.js",
     "static/js/453.1caf68ed.chunk.js": "/eva-website/static/js/453.1caf68ed.chunk.js",
     "static/media/DSC03813-2.jpg": "/eva-website/static/media/DSC03813-2.44b1a2281e5d7ec74982.jpg",
     "static/media/DSC00747.jpg": "/eva-website/static/media/DSC00747.1269903640ba8800bed9.jpg",
     "index.html": "/eva-website/index.html",
     "main.06a063b1.css.map": "/eva-website/static/css/main.06a063b1.css.map",
-    "main.18fc0e82.js.map": "/eva-website/static/js/main.18fc0e82.js.map",
+    "main.5bff4b9d.js.map": "/eva-website/static/js/main.5bff4b9d.js.map",
     "453.1caf68ed.chunk.js.map": "/eva-website/static/js/453.1caf68ed.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.06a063b1.css",
-    "static/js/main.18fc0e82.js"
+    "static/js/main.5bff4b9d.js"
   ]
 }
