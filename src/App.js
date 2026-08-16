@@ -10,6 +10,7 @@ import Contact from './pages/Contact';
 import CategoryPage from './pages/CategoryPage';
 import ProjectDetail from './pages/ProjectDetail';
 import AdminPanel from './pages/AdminPanel';
+import Impressum from './pages/Impressum';
 import './App.css';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/project/:id" element={<ProjectDetail />} />
             <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/impressum" element={<Impressum />} />
           </Routes>
           <Footer />
         </div>

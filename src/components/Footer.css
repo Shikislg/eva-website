@@ -35,6 +35,16 @@
   letter-spacing: 0.08em;
 }
 
+.footer-impressum {
+  color: var(--color-text-light);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-impressum:hover {
+  color: var(--color-primary);
+}
+
 @media (max-width: 768px) {
   .footer-inner {
     flex-direction: column;

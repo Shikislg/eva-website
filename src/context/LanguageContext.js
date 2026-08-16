@@ -53,6 +53,7 @@ const translations = {
 
     // Footer
     footer_copy: 'Eva Wagner',
+    footer_impressum: 'Legal Notice',
 
     // Admin
     admin_title: 'Admin Access',
@@ -132,6 +133,7 @@ const translations = {
 
     // Footer
     footer_copy: 'Eva Wagner',
+    footer_impressum: 'Impressum',
 
     // Admin
     admin_title: 'Admin-Zugang',

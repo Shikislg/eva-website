@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import './Footer.css';
 
@@ -30,7 +31,11 @@ export default function Footer() {
             </svg>
           </a>
         </div>
-        <p className="footer-copy">{t('footer_copy')} &copy; {new Date().getFullYear()}</p>
+        <p className="footer-copy">
+          {t('footer_copy')} &copy; {new Date().getFullYear()}
+          {' · '}
+          <Link to="/impressum" className="footer-impressum">{t('footer_impressum')}</Link>
+        </p>
       </div>
     </footer>
   );
