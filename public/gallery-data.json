@@ -1,8 +1,11 @@
 {
-  "lastPublished": 1785867090242,
+  "lastPublished": 1786893011545,
   "projects": [
     {
-      "title": "Schalke 04 U23 - 1. FC Bocholt | Regionalliga West",
+      "titles": {
+        "en": "Schalke 04 U23 - 1. FC Bocholt | Regionalliga West",
+        "de": "Schalke 04 U23 - 1. FC Bocholt | Regionalliga West"
+      },
       "year": "2026",
       "category": "sports",
       "description": "",
@@ -33,7 +36,10 @@
       "order": 0
     },
     {
-      "title": "ETB Schwarz-Weiß Essen - Fortuna Bottrop | Bezirksliga",
+      "titles": {
+        "en": "ETB Schwarz-Weiß Essen - Fortuna Bottrop | Bezirksliga",
+        "de": "ETB Schwarz-Weiß Essen - Fortuna Bottrop | Bezirksliga"
+      },
       "year": "2026",
       "category": "sports",
       "description": "",
@@ -56,7 +62,10 @@
       "order": 1
     },
     {
-      "title": "Fortuna Bottrop - SPVG Schonnebeck | Bezirksliga",
+      "titles": {
+        "en": "Fortuna Bottrop - SPVG Schonnebeck | Bezirksliga",
+        "de": "Fortuna Bottrop - SPVG Schonnebeck | Bezirksliga"
+      },
       "year": "2026",
       "category": "sports",
       "description": "",
@@ -87,7 +96,10 @@
       "order": 2
     },
     {
-      "title": "SC St. Tönis - Fortuna Düsseldorf | Testspiel",
+      "titles": {
+        "en": "SC St. Tönis - Fortuna Düsseldorf | Friendly Match",
+        "de": "SC St. Tönis - Fortuna Düsseldorf | Testspiel"
+      },
       "year": "2026",
       "category": "sports",
       "description": "",
@@ -118,7 +130,10 @@
       "order": 3
     },
     {
-      "title": "FC Kürzer - HFC Heine '97 | HLW Finale",
+      "titles": {
+        "en": "FC Kürzer - HFC Heine '97 | HLW Final",
+        "de": "FC Kürzer - HFC Heine '97 | HLW Finale"
+      },
       "year": "2026",
       "category": "sports",
       "description": "",
@@ -146,7 +161,10 @@
       "order": 4
     },
     {
-      "title": "Rabbit Cup 2026 | Uniliga 2026",
+      "titles": {
+        "en": "Rabbit Cup 2026 | Uniliga 2026",
+        "de": "Rabbit Cup 2026 | Uniliga 2026"
+      },
       "year": "2026",
       "category": "sports",
       "description": "",
@@ -179,7 +197,10 @@
       "order": 5
     },
     {
-      "title": "Pentastone | Focus on you Tour 2026",
+      "titles": {
+        "en": "Pentastone | Focus on you Tour 2026",
+        "de": "Pentastone | Focus on you Tour 2026"
+      },
       "year": "2026",
       "category": "concerts",
       "description": "",
@@ -206,25 +227,27 @@
       "order": 6
     },
     {
-      "title": "Letters Sent Home | Focus on you Tour 2026",
+      "titles": {
+        "en": "Letters Sent Home | Focus on you Tour 2026",
+        "de": "Letters Sent Home | Focus on you Tour 2026"
+      },
       "year": "2026",
       "category": "concerts",
       "description": "",
-      "coverImage": "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/cover.jpg",
+      "coverImage": "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/cover.png",
       "images": [
+        "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/0.png",
         "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/0.jpg",
-        "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/1.jpg",
         "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/2.jpg",
         "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/3.jpg",
-        "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/4.jpg",
         "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/5.jpg",
         "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/6.jpg",
         "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/7.jpg",
         "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/8.jpg",
-        "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/9.jpg",
+        "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/12.jpg",
         "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/10.jpg",
         "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/11.jpg",
-        "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/12.jpg",
+        "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/9.jpg",
         "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/13.jpg",
         "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/14.jpg",
         "/img/gallery/15a33b6e-55d2-4892-9728-308c746401d1/15.jpg",
