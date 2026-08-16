@@ -15,10 +15,26 @@ export const CATEGORIES = [
   { key: 'concerts', label: 'Concerts' },
 ];
 
+/**
+ * Resolve a project's title for the given language. `titles` is the current
+ * `{ en, de }` shape; `title` (plain string) is supported as a fallback for any
+ * project data cached before multi-language titles existed (e.g. a browser's
+ * stale IndexedDB copy from before this shipped).
+ * @param {{ titles?: { en?: string, de?: string }, title?: string }} project
+ * @param {string} lang
+ * @returns {string}
+ */
+export function getProjectTitle(project, lang) {
+  if (project.titles) {
+    return project.titles[lang] || project.titles.en || project.titles.de || '';
+  }
+  return project.title || '';
+}
+
 const defaultProjects = [
   {
     id: uuidv4(),
-    title: 'Bundesliga Match Day',
+    titles: { en: 'Bundesliga Match Day', de: 'Bundesliga Spieltag' },
     year: '2026',
     category: 'sports',
     description: 'Capturing the intensity and passion of Bundesliga football — from tackles to celebrations.',
@@ -32,7 +48,7 @@ const defaultProjects = [
   },
   {
     id: uuidv4(),
-    title: 'Track & Field',
+    titles: { en: 'Track & Field', de: 'Leichtathletik' },
     year: '2026',
     category: 'sports',
     description: 'Speed, form, and determination — athletics captured in the decisive moment.',
@@ -46,7 +62,7 @@ const defaultProjects = [
   },
   {
     id: uuidv4(),
-    title: 'Basketball Season',
+    titles: { en: 'Basketball Season', de: 'Basketball-Saison' },
     year: '2025',
     category: 'sports',
     description: 'Court-side perspectives from an electrifying basketball season.',
@@ -59,7 +75,7 @@ const defaultProjects = [
   },
   {
     id: uuidv4(),
-    title: 'Summer Festival',
+    titles: { en: 'Summer Festival', de: 'Sommerfestival' },
     year: '2026',
     category: 'concerts',
     description: 'Lights, energy, and crowd euphoria at one of Germany\'s biggest outdoor music festivals.',
@@ -73,7 +89,7 @@ const defaultProjects = [
   },
   {
     id: uuidv4(),
-    title: 'Intimate Acoustic',
+    titles: { en: 'Intimate Acoustic', de: 'Intime Akustik-Session' },
     year: '2025',
     category: 'concerts',
     description: 'Small-venue sessions where the music feels close enough to touch.',
@@ -86,7 +102,7 @@ const defaultProjects = [
   },
   {
     id: uuidv4(),
-    title: 'Arena Nights',
+    titles: { en: 'Arena Nights', de: 'Arena-Nächte' },
     year: '2025',
     category: 'concerts',
     description: 'Massive stages, roaring crowds, and artists in their element under arena lights.',

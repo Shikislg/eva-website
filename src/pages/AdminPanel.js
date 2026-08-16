@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { useProjects, CATEGORIES } from '../context/ProjectContext';
+import { useProjects, CATEGORIES, getProjectTitle } from '../context/ProjectContext';
 import { useLanguage } from '../context/LanguageContext';
 import { prepareImageForUpload, getDataURLMimeType, extensionForMimeType } from '../utils/imageUtils';
 import './AdminPanel.css';
@@ -14,7 +14,7 @@ const DEFAULT_GH_SETTINGS = {
 
 export default function AdminPanel() {
   const { projects, addProject, updateProject, deleteProject, reorderProjects, publishToGitHub } = useProjects();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [authenticated, setAuthenticated] = useState(
     () => sessionStorage.getItem('admin_auth') === '1'
   );
@@ -59,7 +59,8 @@ export default function AdminPanel() {
   }, [ghSettings]);
 
   const [form, setForm] = useState({
-    title: '',
+    titleEn: '',
+    titleDe: '',
     year: new Date().getFullYear().toString(),
     category: CATEGORIES[0].key,
     description: '',
@@ -275,7 +276,8 @@ export default function AdminPanel() {
 
   const resetForm = () => {
     setForm({
-      title: '',
+      titleEn: '',
+      titleDe: '',
       year: new Date().getFullYear().toString(),
       category: CATEGORIES[0].key,
       description: '',
@@ -288,7 +290,8 @@ export default function AdminPanel() {
 
   const handleEdit = (project) => {
     setForm({
-      title: project.title,
+      titleEn: project.titles?.en ?? project.title ?? '',
+      titleDe: project.titles?.de ?? '',
       year: project.year,
       category: project.category || CATEGORIES[0].key,
       description: project.description,
@@ -307,7 +310,10 @@ export default function AdminPanel() {
       .filter(Boolean);
 
     const projectData = {
-      title: form.title.trim(),
+      titles: {
+        en: form.titleEn.trim(),
+        de: form.titleDe.trim() || form.titleEn.trim(),
+      },
       year: form.year.trim(),
       category: form.category,
       description: form.description.trim(),
@@ -517,13 +523,22 @@ export default function AdminPanel() {
           <form className="admin-form" onSubmit={handleSubmit}>
             <h3>{editing ? t('admin_edit_title') : t('admin_new_title')}</h3>
             <label>
-              {t('admin_label_title')}
+              {t('admin_label_title_en')}
               <input
                 type="text"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                value={form.titleEn}
+                onChange={(e) => setForm({ ...form, titleEn: e.target.value })}
                 required
                 placeholder={t('admin_placeholder_title')}
+              />
+            </label>
+            <label>
+              {t('admin_label_title_de')}
+              <input
+                type="text"
+                value={form.titleDe}
+                onChange={(e) => setForm({ ...form, titleDe: e.target.value })}
+                placeholder={t('admin_placeholder_title_de')}
               />
             </label>
             <label>
@@ -691,10 +706,10 @@ export default function AdminPanel() {
             >
               <span className="admin-drag-handle" title="Drag to reorder">⠿</span>
               <div className="admin-project-thumb">
-                <img src={project.coverImage} alt={project.title} />
+                <img src={project.coverImage} alt={getProjectTitle(project, lang)} />
               </div>
               <div className="admin-project-info">
-                <h4>{project.title}</h4>
+                <h4>{getProjectTitle(project, lang)}</h4>
                 <span>{project.year} &middot; {(CATEGORIES.find((c) => c.key === project.category) || {}).label || project.category} &middot; {project.images.length} {t('admin_photos')}</span>
               </div>
               <div className="admin-project-actions">
@@ -703,7 +718,7 @@ export default function AdminPanel() {
                 </button>
                 <button
                   className="btn-icon btn-danger"
-                  onClick={() => handleDelete(project.id, project.title)}
+                  onClick={() => handleDelete(project.id, getProjectTitle(project, lang))}
                   title="Delete"
                 >
                   ✕

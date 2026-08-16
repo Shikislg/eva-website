@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { useProjects } from '../context/ProjectContext';
+import { useProjects, getProjectTitle } from '../context/ProjectContext';
 import { useLanguage } from '../context/LanguageContext';
 import { assetUrl } from '../utils/assetUrl';
 import './ProjectDetail.css';
@@ -42,8 +42,9 @@ function LazyImage({ src, alt, onClick }) {
 export default function ProjectDetail() {
   const { id } = useParams();
   const { getProject } = useProjects();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const project = getProject(id);
+  const title = project ? getProjectTitle(project, lang) : '';
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
   const openLightbox = (index) => setLightboxIndex(index);
@@ -87,7 +88,7 @@ export default function ProjectDetail() {
           {t('detail_back')}
         </Link>
         <div className="project-detail-title-block">
-          <h1>{project.title}</h1>
+          <h1>{title}</h1>
           <span className="project-detail-year">{project.year}</span>
         </div>
         {project.description && (
@@ -103,7 +104,7 @@ export default function ProjectDetail() {
           >
             <LazyImage
               src={assetUrl(img)}
-              alt={`${project.title} - ${index + 1}`}
+              alt={`${title} - ${index + 1}`}
             />
           </div>
         ))}
@@ -126,7 +127,7 @@ export default function ProjectDetail() {
           <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
             <img
               src={assetUrl(project.images[lightboxIndex])}
-              alt={`${project.title} - ${lightboxIndex + 1}`}
+              alt={`${title} - ${lightboxIndex + 1}`}
             />
             <span className="lightbox-counter">
               {lightboxIndex + 1} / {project.images.length}
