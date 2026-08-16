@@ -23,8 +23,8 @@ const translations = {
 
     // About
     about_title: 'About',
-    about_p1: "I am Eva – a music enthusiast who spends her weekends in football stadiums, supporting my favourite clubs Fortuna Düsseldorf and SV Elversberg. I have always been the one who anticipated moments and captured them: first with my phone, then more seriously once I started photographing the university football team – a passion project I already did social media for. Seeing people’s faces light up when they looked at my photos made me realize how fulfilling this could be. I discovered that, with photography, I could combine the exhilarating energy of two things I am deeply passionate about: concerts and football.",
-    about_p2: "Growing up as a fangirl who adores pop music and becoming a football fan only after turning 18, I noticed that those two groups of fans have much more in common than many people think; but one in particular is the feeling of being in the moment. Whether it’s dancing around to your favourite song being performed live or the electrifying seconds just before a penalty: <em class=\"about-emotion\">I love to capture emotion.</em>",
+    about_p1: "I am Eva - a music enthusiast who spends her weekends in football stadiums, supporting my favourite clubs Fortuna Düsseldorf and SV Elversberg. I have always been the one who anticipated moments and captured them: first with my phone, then more seriously once I started photographing the university football team – a passion project I already did social media for. Seeing people’s faces light up when they looked at my photos made me realize how fulfilling this could be. I discovered that, with photography, I could combine the exhilarating energy of two things I am deeply passionate about: concerts and football.",
+    about_p2: "Growing up as a fangirl who adores pop music and becoming a football fan only after turning 18, I noticed that those two groups of fans have much more in common than many people think; but one in particular is the feeling of being in the moment. Whether it’s dancing around to your favourite song being performed live or the electrifying seconds just before a penalty:<br/><span class=\"about-emotion-line\">I love <span class=\"about-e\">capturing e</span><em class=\"about-motion\">motion</em>.</span>",
     about_p3: 'If you like my work or are interested in collaborating, feel free to contact me!',
 
     // Contact
@@ -71,7 +71,7 @@ const translations = {
     admin_label_description: 'Description',
     admin_label_cover: 'Cover Image URL',
     admin_label_images: 'Project Image URLs (one per line)',
-    admin_placeholder_title: 'e.g. Urban Landscapes',
+  admin_placeholder_title: 'e.g. Urban Landscap es',
     admin_placeholder_year: 'e.g. 2026',
     admin_placeholder_desc: 'Brief description of the project...',
     admin_save: 'Save Changes',
@@ -104,7 +104,7 @@ const translations = {
     // About
     about_title: 'Über mich',
     about_p1: 'Ich bin Eva – eine Musikenthusiastin, die ihre Wochenenden in Fußballstadien verbringt, um meine Lieblingsvereine Fortuna Düsseldorf und SV Elversberg anzufeuern. Ich war schon immer jemand, der besondere Momente antizipieren und festhalten konnte: zuerst mit meinem Handy, später dann professioneller, als ich anfing, ein Fußballteam meiner Universität zu fotografieren – ein Herzensprojekt, für das ich bereits den Instagram-Account betreute. Die Freude der Menschen zu sehen, wenn sie meine Fotos anschauten, machte mir klar, wie erfüllend das sein kann. Ich entdeckte, dass ich mit der Fotografie die mitreißende Energie zweier Dinge verbinden konnte, für die ich eine tiefe Leidenschaft habe: Konzerte und Fußball.',
-    about_p2: 'Aufgewachsen als Fangirl, welches Popmusik liebt, und als Fußballfan – erst seit meinem 18. Lebensjahr – ist mir aufgefallen, dass beiden Fangruppen viel mehr gemeinsam haben, als viele Menschen denken; vor allem ist es das Gefühl, ganz im Moment zu sein. Ob man nun zu seinem Lieblingssong tanzt, der live gespielt wird, oder die elektrisierenden Sekunden kurz vor einem Elfmeter erlebt: <em class="about-emotion">I love to capture emotion.</em>',
+    about_p2: 'Aufgewachsen als Fangirl, welches Popmusik liebt, und als Fußballfan – erst seit meinem 18. Lebensjahr – ist mir aufgefallen, dass beiden Fangruppen viel mehr gemeinsam haben, als viele Menschen denken; vor allem ist es das Gefühl, ganz im Moment zu sein. Ob man nun zu seinem Lieblingssong tanzt, der live gespielt wird, oder die elektrisierenden Sekunden kurz vor einem Elfmeter erlebt:<br/><span class="about-emotion-line">I love <span class="about-e">capturing e</span><em class="about-motion">motion</em>.</span>',
     about_p3: 'Wenn dir meine Arbeit gefällt oder du an einer Zusammenarbeit interessiert bist, melde dich gerne bei mir!',
 
     // Contact
